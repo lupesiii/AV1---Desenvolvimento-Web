@@ -7,20 +7,17 @@ import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-@Data
+@Data // Lombok: gera getters, setters, toString, hashCode e equals automaticamente
+@EqualsAndHashCode(callSuper = true) // Lombok: inclui campos da classe pai na geração de equals e hashCode
 @Entity
-public class Cliente {
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+public class Cliente extends EntidadeBase {
+
 	@Column
 	private String nome;
 	@Column
