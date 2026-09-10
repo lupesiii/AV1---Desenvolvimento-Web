@@ -4,22 +4,22 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.autobots.automanager.documento.domain.Documento;
-import com.autobots.automanager.documento.models.DocumentoCadastro;
 import com.autobots.automanager.documento.services.DocumentoServico;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("/documento")
 public class DocumentoControle {
-  @Autowired
-  private DocumentoServico servico;
+  private final DocumentoServico servico;
+
+  DocumentoControle(DocumentoServico servico) {
+    this.servico = servico;
+  }
 
   @GetMapping("/")
   public List<Documento> obterDocumentos() {
@@ -29,6 +29,11 @@ public class DocumentoControle {
   @GetMapping("/{id}")
   public Documento obterDocumentoPorId(@PathVariable long id) {
     return this.servico.ObterDocumentoPorId(id);
+  }
+
+  @DeleteMapping("/remover/{id}")
+  public void deletaDocumentoPorId(@PathVariable Long id) {
+
   }
 
   // @PostMapping("/cadastro")

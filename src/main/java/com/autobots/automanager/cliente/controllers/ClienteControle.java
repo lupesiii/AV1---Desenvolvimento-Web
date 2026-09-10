@@ -2,7 +2,6 @@ package com.autobots.automanager.cliente.controllers;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,8 +19,11 @@ import com.autobots.automanager.cliente.services.ClienteServico;
 @RestController
 @RequestMapping("/cliente")
 public class ClienteControle {
-	@Autowired
-	private ClienteServico servico;
+	private final ClienteServico servico;
+
+	ClienteControle(ClienteServico servico) {
+		this.servico = servico;
+	}
 
 	@GetMapping("/")
 	public List<Cliente> obterClientes() {

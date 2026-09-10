@@ -4,7 +4,7 @@ import com.autobots.automanager.cliente.domain.Endereco;
 import com.autobots.automanager.common.StringVerificadorNulo;
 
 public class EnderecoAtualizador {
-	private StringVerificadorNulo verificador = new StringVerificadorNulo();
+	private final StringVerificadorNulo verificador = new StringVerificadorNulo();
 
 	public void atualizar(Endereco endereco, Endereco atualizacao) {
 		if (atualizacao != null) {

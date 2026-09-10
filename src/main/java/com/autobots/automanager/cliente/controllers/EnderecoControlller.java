@@ -4,6 +4,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.autobots.automanager.cliente.domain.Endereco;
+import com.autobots.automanager.cliente.models.EnderecoAtualiza;
 import com.autobots.automanager.cliente.models.EnderecoCadastro;
 import com.autobots.automanager.cliente.services.EnderecoServico;
 
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
 @RequestMapping("/endereco")
@@ -33,5 +35,10 @@ public class EnderecoControlller {
   @DeleteMapping("/remover/{id}")
   public void removerEnderecoCliente(@PathVariable Long id) {
     this.servico.removerEnderecoPorClienteId(id);
+  }
+
+  @PutMapping("/editar")
+  public void editarEnderecoCliente(@RequestBody EnderecoAtualiza enderecoAtualiza) {
+    this.servico.editarEnderecoPorClienteId(enderecoAtualiza);
   }
 }

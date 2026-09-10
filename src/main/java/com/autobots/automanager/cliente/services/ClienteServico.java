@@ -2,12 +2,13 @@ package com.autobots.automanager.cliente.services;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.autobots.automanager.cliente.ClienteDTO;
 import com.autobots.automanager.cliente.ClienteFacade;
+import com.autobots.automanager.cliente.ClienteNaoEncontradoException;
 import com.autobots.automanager.cliente.domain.Cliente;
 import com.autobots.automanager.cliente.models.ClienteAtualizador;
 import com.autobots.automanager.cliente.models.ClienteExclusao;
@@ -19,10 +20,13 @@ import jakarta.transaction.Transactional;
 
 @Service
 public class ClienteServico implements ClienteFacade {
-  @Autowired
-  private ClienteRepositorio repositorio;
-  @Autowired
-  private Selecionador<Cliente> selecionador;
+  private final ClienteRepositorio repositorio;
+  private final Selecionador<Cliente> selecionador;
+
+  ClienteServico(ClienteRepositorio repositorio, Selecionador<Cliente> selecionador) {
+    this.repositorio = repositorio;
+    this.selecionador = selecionador;
+  }
 
   public Cliente ObterClientePorId(Long id) {
     List<Cliente> clientes = this.repositorio.findAll();
@@ -59,14 +63,18 @@ public class ClienteServico implements ClienteFacade {
   }
 
   public void AtualizarCliente(Cliente clienteAtualizado) {
-    Cliente cliente = repositorio.getById(clienteAtualizado.getId());
+    Optional<Cliente> clienteOpt = this.repositorio.findClienteById(clienteAtualizado.getId());
+    Cliente cliente = clienteOpt.orElseThrow(() -> new ClienteNaoEncontradoException(clienteAtualizado.getId()));
+
     ClienteAtualizador atualizador = new ClienteAtualizador();
     atualizador.atualizar(cliente, clienteAtualizado);
     repositorio.save(cliente);
   }
 
   public void ExcluirCliente(ClienteExclusao exclusao) {
-    Cliente cliente = repositorio.getById(exclusao.getId());
+    Optional<Cliente> clienteOpt = this.repositorio.findClienteById(exclusao.getId());
+    Cliente cliente = clienteOpt.orElseThrow(() -> new ClienteNaoEncontradoException(exclusao.getId()));
+
     repositorio.delete(cliente);
   }
 }

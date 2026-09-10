@@ -4,19 +4,15 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.autobots.automanager.documento.interfaces.ClienteGateway;
 import com.autobots.automanager.documento.repositories.DocumentoRepositorio;
 import com.autobots.automanager.documento.domain.Documento;
-import com.autobots.automanager.documento.models.DocumentoCadastro;
 
 @Service
 public class DocumentoServico {
   // https://stackoverflow.com/questions/40620000/spring-autowired-on-properties-vs-constructor
   private final DocumentoRepositorio repositorio;
-  private final ClienteGateway clienteGateway;
 
-  DocumentoServico(ClienteGateway clienteGateway, DocumentoRepositorio repositorio) {
-    this.clienteGateway = clienteGateway;
+  DocumentoServico(DocumentoRepositorio repositorio) {
     this.repositorio = repositorio;
   }
 

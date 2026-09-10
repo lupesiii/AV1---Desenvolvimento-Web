@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.autobots.automanager.cliente.domain.Endereco;
+import com.autobots.automanager.cliente.models.EnderecoAtualiza;
+import com.autobots.automanager.cliente.models.EnderecoAtualizador;
 import com.autobots.automanager.cliente.models.EnderecoCadastro;
 import com.autobots.automanager.cliente.ClienteNaoEncontradoException;
 import com.autobots.automanager.cliente.domain.Cliente;
@@ -37,5 +39,14 @@ public class EnderecoServico {
 
     cliente.setEndereco(null);
     this.repositorio.save(cliente);
+  }
+
+  public void editarEnderecoPorClienteId(EnderecoAtualiza enderecoAtualiza) {
+    Optional<Cliente> clienteOpt = this.repositorio.findClienteById(enderecoAtualiza.getClienteId());
+    Cliente cliente = clienteOpt.orElseThrow(() -> new ClienteNaoEncontradoException(enderecoAtualiza.getClienteId()));
+
+    cliente.setEndereco(enderecoAtualiza.getEndereco());
+    this.repositorio.save(cliente);
+
   }
 }
