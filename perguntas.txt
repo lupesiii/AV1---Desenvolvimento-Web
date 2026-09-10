@@ -1,0 +1,2 @@
+Verificar se está correto separar documento de cliente
+Se endereço só existe no contexto de ver/editar o cliente ou se ele será consultado isoladamente dentro do sistema
