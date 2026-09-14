@@ -2,13 +2,7 @@ package com.autobots.automanager.common;
 
 public class StringVerificadorNulo {
 
-	public boolean verificar(String dado) {
-		boolean nulo = true;
-		if (!(dado == null)) {
-			if (!dado.isBlank()) {
-				nulo = false;
-			}
-		}
-		return nulo;
+	public static boolean verificar(String dado) {
+		return dado == null || dado.isBlank();
 	}
 }

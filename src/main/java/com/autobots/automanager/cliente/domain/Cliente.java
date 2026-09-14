@@ -26,9 +26,19 @@ public class Cliente extends EntidadeBase {
 	private Date dataNascimento;
 	@Column
 	private Date dataCadastro;
-	@OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+	@OneToOne(mappedBy = "cliente", cascade = CascadeType.ALL, orphanRemoval = true)
 	private Endereco endereco;
-	@OneToMany(orphanRemoval = true, cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "cliente", orphanRemoval = true, cascade = CascadeType.ALL)
 	private List<Telefone> telefones = new ArrayList<>();
+
+	public void addTelefone(Telefone telefone) {
+		telefones.add(telefone);
+		telefone.setCliente(this);
+	}
+
+	public void removeTelefone(Telefone telefone) {
+		telefones.remove(telefone);
+		telefone.setCliente(null);
+	}
 
 }

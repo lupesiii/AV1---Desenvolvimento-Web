@@ -11,19 +11,18 @@ import com.autobots.automanager.cliente.ClienteFacade;
 import com.autobots.automanager.cliente.ClienteNaoEncontradoException;
 import com.autobots.automanager.cliente.domain.Cliente;
 import com.autobots.automanager.cliente.models.ClienteAtualizador;
-import com.autobots.automanager.cliente.models.ClienteExclusao;
 import com.autobots.automanager.cliente.models.ClienteMapper;
 import com.autobots.automanager.cliente.models.Selecionador;
-import com.autobots.automanager.cliente.repositories.ClienteRepositorio;
+import com.autobots.automanager.cliente.repositories.ClienteRepository;
 
 import jakarta.transaction.Transactional;
 
 @Service
 public class ClienteServico implements ClienteFacade {
-  private final ClienteRepositorio repositorio;
+  private final ClienteRepository repositorio;
   private final Selecionador<Cliente> selecionador;
 
-  ClienteServico(ClienteRepositorio repositorio, Selecionador<Cliente> selecionador) {
+  ClienteServico(ClienteRepository repositorio, Selecionador<Cliente> selecionador) {
     this.repositorio = repositorio;
     this.selecionador = selecionador;
   }
@@ -53,27 +52,31 @@ public class ClienteServico implements ClienteFacade {
 
   @Override
   @Transactional
-  public void CadastrarCliente(ClienteDTO cliente) {
+  public Long CadastrarCliente(ClienteDTO cliente) {
     Cliente c = new Cliente();
     c.setNome(cliente.nome());
     c.setNomeSocial(cliente.nomeSocial());
     c.setDataNascimento(cliente.dataNascimento());
     c.setDataCadastro(new Date());
-    this.repositorio.save(c);
+
+    Cliente clienteCriado = this.repositorio.save(c);
+    return clienteCriado.getId();
   }
 
   public void AtualizarCliente(Cliente clienteAtualizado) {
     Optional<Cliente> clienteOpt = this.repositorio.findClienteById(clienteAtualizado.getId());
-    Cliente cliente = clienteOpt.orElseThrow(() -> new ClienteNaoEncontradoException(clienteAtualizado.getId()));
+    Cliente cliente = clienteOpt.orElseThrow(
+        () -> new ClienteNaoEncontradoException(clienteAtualizado.getId(), "Não foi possível atualizar o cliente"));
 
     ClienteAtualizador atualizador = new ClienteAtualizador();
     atualizador.atualizar(cliente, clienteAtualizado);
     repositorio.save(cliente);
   }
 
-  public void ExcluirCliente(ClienteExclusao exclusao) {
-    Optional<Cliente> clienteOpt = this.repositorio.findClienteById(exclusao.getId());
-    Cliente cliente = clienteOpt.orElseThrow(() -> new ClienteNaoEncontradoException(exclusao.getId()));
+  public void ExcluirCliente(Long id) {
+    Optional<Cliente> clienteOpt = this.repositorio.findClienteById(id);
+    Cliente cliente = clienteOpt
+        .orElseThrow(() -> new ClienteNaoEncontradoException(id, "Não foi possível excluir o cliente"));
 
     repositorio.delete(cliente);
   }

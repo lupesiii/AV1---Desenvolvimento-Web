@@ -2,6 +2,7 @@ package com.autobots.automanager.cliente.controllers;
 
 import java.util.List;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.autobots.automanager.cliente.ClienteDTO;
 import com.autobots.automanager.cliente.domain.Cliente;
-import com.autobots.automanager.cliente.models.ClienteExclusao;
 import com.autobots.automanager.cliente.services.ClienteServico;
 
 @RestController
@@ -25,19 +25,29 @@ public class ClienteControle {
 		this.servico = servico;
 	}
 
+	@GetMapping("/teste/{id}")
+	public Boolean obterClientesS(@PathVariable long id) {
+		Boolean clientes = this.servico.ExisteCliente(id);
+
+		return clientes;
+	}
+
 	@GetMapping("/")
-	public List<Cliente> obterClientes() {
-		return this.servico.ObterClientes();
+	public ResponseEntity<List<Cliente>> obterClientes() {
+		List<Cliente> clientes = this.servico.ObterClientes();
+
+		return ResponseEntity.ok(clientes);
 	}
 
 	@GetMapping("/{id}")
-	public Cliente obterCliente(@PathVariable long id) {
-		return this.servico.ObterClientePorId(id);
+	public ResponseEntity<Cliente> obterCliente(@PathVariable long id) {
+		Cliente cliente = this.servico.ObterClientePorId(id);
+		return ResponseEntity.ok(cliente);
 	}
 
 	@PostMapping("/cadastro")
-	public void cadastrarCliente(@RequestBody ClienteDTO cliente) {
-		this.servico.CadastrarCliente(cliente);
+	public ResponseEntity<Long> cadastrarCliente(@RequestBody ClienteDTO cliente) {
+		return ResponseEntity.created(null).body(this.servico.CadastrarCliente(cliente));
 	}
 
 	@PutMapping("/atualizar")
@@ -46,7 +56,7 @@ public class ClienteControle {
 	}
 
 	@DeleteMapping("/excluir")
-	public void excluirCliente(@RequestBody ClienteExclusao exclusao) {
-		this.servico.ExcluirCliente(exclusao);
+	public void excluirCliente(@RequestBody Long id) {
+		this.servico.ExcluirCliente(id);
 	}
 }

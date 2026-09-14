@@ -2,7 +2,8 @@ package com.autobots.automanager.cliente.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -24,5 +25,9 @@ public class Endereco extends EntidadeBase {
 	private String codigoPostal;
 	@Column(unique = false, nullable = true)
 	private String informacoesAdicionais;
+
+	@OneToOne
+	@JoinColumn(name = "cliente_id", unique = true)
+	private Cliente cliente;
 
 }

@@ -6,14 +6,13 @@ import com.autobots.automanager.cliente.domain.Telefone;
 import com.autobots.automanager.common.StringVerificadorNulo;
 
 public class TelefoneAtualizador {
-	private StringVerificadorNulo verificador = new StringVerificadorNulo();
+	public static void atualizar(Telefone telefone, Telefone atualizacao) {
 
-	public void atualizar(Telefone telefone, Telefone atualizacao) {
 		if (atualizacao != null) {
-			if (!verificador.verificar(atualizacao.getDdd())) {
+			if (!StringVerificadorNulo.verificar(atualizacao.getDdd())) {
 				telefone.setDdd(atualizacao.getDdd());
 			}
-			if (!verificador.verificar(atualizacao.getNumero())) {
+			if (!StringVerificadorNulo.verificar(atualizacao.getNumero())) {
 				telefone.setNumero(atualizacao.getNumero());
 			}
 		}

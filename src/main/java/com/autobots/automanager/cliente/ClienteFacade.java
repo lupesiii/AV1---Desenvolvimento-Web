@@ -5,5 +5,5 @@ public interface ClienteFacade {
 
     boolean ExisteCliente(Long id);
 
-    void CadastrarCliente(ClienteDTO cliente);
+    Long CadastrarCliente(ClienteDTO cliente);
 }
