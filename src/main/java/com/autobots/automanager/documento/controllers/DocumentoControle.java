@@ -32,6 +32,11 @@ public class DocumentoControle {
     return ResponseEntity.ok(this.servico.ObterDocumentoPorId(id));
   }
 
+  @GetMapping("/cliente/{clienteId}")
+  public List<Documento> obterDocumentosPorClienteId(@PathVariable Long clienteId) {
+    return this.servico.obterDocumentosPorClienteId(clienteId);
+  }
+
   @DeleteMapping("/remover/{id}")
   public void deletaDocumentoPorId(@PathVariable Long id) {
 

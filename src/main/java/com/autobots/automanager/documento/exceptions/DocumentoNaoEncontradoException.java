@@ -1,4 +1,4 @@
-package com.autobots.automanager.documento;
+package com.autobots.automanager.documento.exceptions;
 
 public class DocumentoNaoEncontradoException extends RuntimeException {
   private String message;

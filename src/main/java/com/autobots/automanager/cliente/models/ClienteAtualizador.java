@@ -4,16 +4,14 @@ import com.autobots.automanager.cliente.domain.Cliente;
 import com.autobots.automanager.common.StringVerificadorNulo;
 
 public class ClienteAtualizador {
-	private StringVerificadorNulo verificador = new StringVerificadorNulo();
 	private EnderecoAtualizador enderecoAtualizador = new EnderecoAtualizador();
-
 	private TelefoneAtualizador telefoneAtualizador = new TelefoneAtualizador();
 
 	private void atualizarDados(Cliente cliente, Cliente atualizacao) {
-		if (!verificador.verificar(atualizacao.getNome())) {
+		if (!StringVerificadorNulo.verificar(atualizacao.getNome())) {
 			cliente.setNome(atualizacao.getNome());
 		}
-		if (!verificador.verificar(atualizacao.getNomeSocial())) {
+		if (!StringVerificadorNulo.verificar(atualizacao.getNomeSocial())) {
 			cliente.setNomeSocial(atualizacao.getNomeSocial());
 		}
 		if (!(atualizacao.getDataCadastro() == null)) {

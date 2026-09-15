@@ -4,26 +4,24 @@ import com.autobots.automanager.cliente.domain.Endereco;
 import com.autobots.automanager.common.StringVerificadorNulo;
 
 public class EnderecoAtualizador {
-	private final StringVerificadorNulo verificador = new StringVerificadorNulo();
-
 	public void atualizar(Endereco endereco, Endereco atualizacao) {
 		if (atualizacao != null) {
-			if (!verificador.verificar(atualizacao.getEstado())) {
+			if (!StringVerificadorNulo.verificar(atualizacao.getEstado())) {
 				endereco.setEstado(atualizacao.getEstado());
 			}
-			if (!verificador.verificar(atualizacao.getCidade())) {
+			if (!StringVerificadorNulo.verificar(atualizacao.getCidade())) {
 				endereco.setCidade(atualizacao.getCidade());
 			}
-			if (!verificador.verificar(atualizacao.getBairro())) {
+			if (!StringVerificadorNulo.verificar(atualizacao.getBairro())) {
 				endereco.setBairro(atualizacao.getBairro());
 			}
-			if (!verificador.verificar(atualizacao.getRua())) {
+			if (!StringVerificadorNulo.verificar(atualizacao.getRua())) {
 				endereco.setRua(atualizacao.getRua());
 			}
-			if (!verificador.verificar(atualizacao.getNumero())) {
+			if (!StringVerificadorNulo.verificar(atualizacao.getNumero())) {
 				endereco.setNumero(atualizacao.getNumero());
 			}
-			if (!verificador.verificar(atualizacao.getInformacoesAdicionais())) {
+			if (!StringVerificadorNulo.verificar(atualizacao.getInformacoesAdicionais())) {
 				endereco.setInformacoesAdicionais(atualizacao.getInformacoesAdicionais());
 			}
 		}

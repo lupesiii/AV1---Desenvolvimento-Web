@@ -33,7 +33,6 @@ public class ClienteServico implements ClienteFacade {
   }
 
   @Override
-  @Transactional
   public ClienteDTO ObterClienteDTOPorId(Long id) {
     List<Cliente> clientes = this.repositorio.findAll();
     Cliente cliente = this.selecionador.selecionar(clientes, id);
@@ -45,7 +44,6 @@ public class ClienteServico implements ClienteFacade {
   }
 
   @Override
-  @Transactional
   public boolean ExisteCliente(Long id) {
     return this.repositorio.existsById(id);
   }

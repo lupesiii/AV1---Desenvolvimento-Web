@@ -13,7 +13,7 @@ import com.autobots.automanager.cliente.exceptions.TelefoneNaoEncontradoExceptio
 import com.autobots.automanager.cliente.models.dto.RespostaErroDTO;
 
 @ControllerAdvice
-public class ExceptionController {
+public class ClienteExceptionController {
   @ExceptionHandler(DataIntegrityViolationException.class)
   public ResponseEntity<RespostaErroDTO> handleDataViolation(DataIntegrityViolationException ex) {
     RespostaErroDTO erroResposta = new RespostaErroDTO(ex.getMessage(), ex.toString());

@@ -6,14 +6,12 @@ import com.autobots.automanager.common.StringVerificadorNulo;
 import com.autobots.automanager.documento.domain.Documento;
 
 public class DocumentoAtualizador {
-	private StringVerificadorNulo verificador = new StringVerificadorNulo();
-
 	public void atualizar(Documento documento, Documento atualizacao) {
 		if (atualizacao != null) {
-			if (!verificador.verificar(atualizacao.getTipo())) {
+			if (!StringVerificadorNulo.verificar(atualizacao.getTipo())) {
 				documento.setTipo(atualizacao.getTipo());
 			}
-			if (!verificador.verificar(atualizacao.getNumero())) {
+			if (!StringVerificadorNulo.verificar(atualizacao.getNumero())) {
 				documento.setNumero(atualizacao.getNumero());
 			}
 		}
