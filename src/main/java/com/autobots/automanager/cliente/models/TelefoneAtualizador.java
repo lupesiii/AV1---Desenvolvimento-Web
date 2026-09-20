@@ -3,10 +3,11 @@ package com.autobots.automanager.cliente.models;
 import java.util.List;
 
 import com.autobots.automanager.cliente.domain.Telefone;
+import com.autobots.automanager.cliente.models.dto.PutTelefoneDTO;
 import com.autobots.automanager.common.StringVerificadorNulo;
 
 public class TelefoneAtualizador {
-	public static void atualizar(Telefone telefone, Telefone atualizacao) {
+	public static void atualizar(Telefone telefone, PutTelefoneDTO atualizacao) {
 
 		if (atualizacao != null) {
 			if (!StringVerificadorNulo.verificar(atualizacao.getDdd())) {
@@ -18,11 +19,11 @@ public class TelefoneAtualizador {
 		}
 	}
 
-	public void atualizar(List<Telefone> telefones, List<Telefone> atualizacoes) {
-		for (Telefone atualizacao : atualizacoes) {
+	public static void atualizar(List<Telefone> telefones, List<PutTelefoneDTO> atualizacoes) {
+		for (PutTelefoneDTO atualizacao : atualizacoes) {
 			for (Telefone telefone : telefones) {
-				if (atualizacao.getId() != null) {
-					if (atualizacao.getId() == telefone.getId()) {
+				if (atualizacao.getTelefoneId() != null) {
+					if (atualizacao.getTelefoneId() == telefone.getId()) {
 						atualizar(telefone, atualizacao);
 					}
 				}

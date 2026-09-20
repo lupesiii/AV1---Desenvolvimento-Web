@@ -6,6 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.autobots.automanager.documento.domain.Documento;
 
-public interface DocumentoRepositorio extends JpaRepository<Documento, Long> {
+public interface DocumentoRepository extends JpaRepository<Documento, Long> {
   List<Documento> findByClienteId(Long clienteId);
 }

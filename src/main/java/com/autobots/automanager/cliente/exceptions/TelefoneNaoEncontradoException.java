@@ -4,10 +4,10 @@ import lombok.Getter;
 
 @Getter
 public class TelefoneNaoEncontradoException extends RuntimeException {
-  private String mensagem;
+  private String customMessage;
 
-  public TelefoneNaoEncontradoException(String titulo, String mensagem) {
+  public TelefoneNaoEncontradoException(String titulo, String customMessage) {
     super(titulo);
-    this.mensagem = mensagem;
+    this.customMessage = customMessage;
   }
 }

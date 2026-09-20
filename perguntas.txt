@@ -1,2 +1,4 @@
-Verificar se está correto separar documento de cliente
-Se endereço só existe no contexto de ver/editar o cliente ou se ele será consultado isoladamente dentro do sistema
+colocar pageable
+alterar data das entidades
+@Transactional e o save no update
+Documentos órfãos na exclusão. excluirCliente apaga endereço e telefones em cascata, mas Documento.clienteId não tem FK, então os documentos ficam órfãos. A saída que mantém os contextos desacoplados é publicar um ClienteExcluidoEvent (ApplicationEventPublisher) e o documento reagir com @TransactionalEventListener. Na extração para microsserviços, o evento vira mensagem.

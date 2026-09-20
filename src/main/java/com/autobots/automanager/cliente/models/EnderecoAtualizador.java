@@ -1,10 +1,11 @@
 package com.autobots.automanager.cliente.models;
 
 import com.autobots.automanager.cliente.domain.Endereco;
+import com.autobots.automanager.cliente.models.dto.PutEnderecoDTO;
 import com.autobots.automanager.common.StringVerificadorNulo;
 
 public class EnderecoAtualizador {
-	public void atualizar(Endereco endereco, Endereco atualizacao) {
+	public static void atualizar(Endereco endereco, PutEnderecoDTO atualizacao) {
 		if (atualizacao != null) {
 			if (!StringVerificadorNulo.verificar(atualizacao.getEstado())) {
 				endereco.setEstado(atualizacao.getEstado());
@@ -20,9 +21,6 @@ public class EnderecoAtualizador {
 			}
 			if (!StringVerificadorNulo.verificar(atualizacao.getNumero())) {
 				endereco.setNumero(atualizacao.getNumero());
-			}
-			if (!StringVerificadorNulo.verificar(atualizacao.getInformacoesAdicionais())) {
-				endereco.setInformacoesAdicionais(atualizacao.getInformacoesAdicionais());
 			}
 		}
 	}

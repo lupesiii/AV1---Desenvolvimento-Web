@@ -1,10 +1,13 @@
 package com.autobots.automanager.documento.exceptions;
 
-public class DocumentoNaoEncontradoException extends RuntimeException {
-  private String message;
+import lombok.Getter;
 
-  public DocumentoNaoEncontradoException(Long id, String message) {
+@Getter
+public class DocumentoNaoEncontradoException extends RuntimeException {
+  private String customMessage;
+
+  public DocumentoNaoEncontradoException(Long id, String customMessage) {
     super("Documento Não Encontrado: " + id);
-    this.message = message;
+    this.customMessage = customMessage;
   }
 }

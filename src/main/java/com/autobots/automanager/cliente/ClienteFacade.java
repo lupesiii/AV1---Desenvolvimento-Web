@@ -1,9 +1,8 @@
 package com.autobots.automanager.cliente;
 
 public interface ClienteFacade {
-    ClienteDTO ObterClienteDTOPorId(Long id);
+    ClienteDTO obterClienteDTOPorId(Long id);
 
-    boolean ExisteCliente(Long id);
+    boolean existeCliente(Long id);
 
-    Long CadastrarCliente(ClienteDTO cliente);
 }

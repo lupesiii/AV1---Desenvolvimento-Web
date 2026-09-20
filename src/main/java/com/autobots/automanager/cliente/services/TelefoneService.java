@@ -1,7 +1,6 @@
 package com.autobots.automanager.cliente.services;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
@@ -13,14 +12,14 @@ import com.autobots.automanager.cliente.models.TelefoneAtualizador;
 import com.autobots.automanager.cliente.models.dto.PutTelefoneDTO;
 import com.autobots.automanager.cliente.models.dto.TelefoneDTO;
 import com.autobots.automanager.cliente.repositories.ClienteRepository;
-import com.autobots.automanager.cliente.repositories.TelefoneRepositorio;
+import com.autobots.automanager.cliente.repositories.TelefoneRepository;
 
 @Service
-public class TelefoneServico {
-  private final TelefoneRepositorio telefoneRepositorio;
+public class TelefoneService {
+  private final TelefoneRepository telefoneRepositorio;
   private final ClienteRepository clienteRepositorio;
 
-  TelefoneServico(TelefoneRepositorio telefoneRepositorio, ClienteRepository clienteRepositorio) {
+  TelefoneService(TelefoneRepository telefoneRepositorio, ClienteRepository clienteRepositorio) {
     this.telefoneRepositorio = telefoneRepositorio;
     this.clienteRepositorio = clienteRepositorio;
   }
@@ -60,9 +59,8 @@ public class TelefoneServico {
     this.telefoneRepositorio.deleteById(telefoneId);
   }
 
-  public void alterarTelefoneporId(PutTelefoneDTO telefoneDTO) {
-    Optional<Telefone> telefoneOpt = this.telefoneRepositorio.findById(telefoneDTO.getTelefoneId());
-    Telefone telefone = telefoneOpt
+  public void atualizarTelefonePorId(PutTelefoneDTO telefoneDTO) {
+    Telefone telefone = this.telefoneRepositorio.findById(telefoneDTO.getTelefoneId())
         .orElseThrow(() -> new TelefoneNaoEncontradoException("Telefone não encontrado: " + telefoneDTO.getTelefoneId(),
             "Não foi possível remover o número"));
 
@@ -70,12 +68,7 @@ public class TelefoneServico {
     if (!existsCliente)
       throw new ClienteNaoEncontradoException(telefone.getCliente().getId(), "Não foi possível cadastrar o telefone");
 
-    Telefone newTelefone = new Telefone();
-    newTelefone.setDdd(telefoneDTO.getDdd());
-    newTelefone.setNumero(telefoneDTO.getNumero());
-
-    TelefoneAtualizador.atualizar(telefone, newTelefone);
-
+    TelefoneAtualizador.atualizar(telefone, telefoneDTO);
     this.telefoneRepositorio.save(telefone);
   }
 }

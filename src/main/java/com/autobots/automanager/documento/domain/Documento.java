@@ -17,6 +17,8 @@ public class Documento {
 	private String tipo;
 	@Column(unique = true)
 	private String numero;
+	@Column
+	private String path;
 	@Column(name = "cliente_id", nullable = false)
 	private Long clienteId;
 }

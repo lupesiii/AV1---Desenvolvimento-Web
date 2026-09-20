@@ -3,11 +3,11 @@ package com.autobots.automanager.cliente.exceptions;
 import lombok.Getter;
 
 @Getter
-public class TelefoneJaExisteException extends RuntimeException {
+public class EnderecoNaoEncontradoException extends RuntimeException {
   private String customMessage;
 
-  public TelefoneJaExisteException(String titulo, String customMessage) {
-    super(titulo);
+  public EnderecoNaoEncontradoException(String customMessage) {
+    super("Not Found");
     this.customMessage = customMessage;
   }
 }
