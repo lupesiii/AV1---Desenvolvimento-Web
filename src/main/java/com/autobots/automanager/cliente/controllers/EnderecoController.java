@@ -6,7 +6,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.autobots.automanager.cliente.domain.Endereco;
 import com.autobots.automanager.cliente.models.dto.PostEnderecoDTO;
-import com.autobots.automanager.cliente.models.dto.PutEnderecoDTO;
+import com.autobots.automanager.cliente.models.dto.PatchEnderecoDTO;
 import com.autobots.automanager.cliente.services.EnderecoService;
 
 import jakarta.validation.Valid;
@@ -21,11 +21,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 
 @Validated
 @RestController
-@RequestMapping("/enderecos")
+@RequestMapping("/clientes/{id}/endereco")
 public class EnderecoController {
   private final EnderecoService enderecoService;
 
@@ -33,32 +33,35 @@ public class EnderecoController {
     this.enderecoService = enderecoService;
   }
 
-  @GetMapping("/cliente/{id}")
+  @GetMapping
   public ResponseEntity<Endereco> obterClienteEndereco(
       @PathVariable @Positive(message = "o id do cliente deve ser maior que 0") Long id) {
     return ResponseEntity.ok(this.enderecoService.obterEnderecoPorClienteId(id));
   }
 
   @PostMapping
-  public ResponseEntity<String> cadastraClienteEndereco(@Valid @RequestBody PostEnderecoDTO enderecoDTO) {
-    this.enderecoService.cadastrarEnderecoPorClienteId(enderecoDTO);
+  public ResponseEntity<Void> cadastraClienteEndereco(
+      @PathVariable @Positive(message = "o id do cliente deve ser maior que 0") Long id,
+      @Valid @RequestBody PostEnderecoDTO enderecoDTO) {
+    this.enderecoService.cadastrarEnderecoPorClienteId(id, enderecoDTO);
     URI location = ServletUriComponentsBuilder.fromCurrentRequest()
-        .path("/cliente/{id}")
-        .buildAndExpand(enderecoDTO.getClienteId())
+        .buildAndExpand(id)
         .toUri();
-    return ResponseEntity.created(location).body("Endereço criado com sucesso");
+    return ResponseEntity.created(location).build();
   }
 
-  @DeleteMapping("/cliente/{id}")
-  public ResponseEntity<Void> removerEnderecoCliente(
-      @PathVariable @Positive(message = "o id do cliente deve ser maior que zero") Long id) {
-    this.enderecoService.removerEnderecoPorClienteId(id);
+  @PatchMapping
+  public ResponseEntity<Void> atualizarEnderecoCliente(
+      @PathVariable @Positive(message = "o id do cliente deve ser maior que zero") Long id,
+      @Valid @RequestBody PatchEnderecoDTO enderecoAtualiza) {
+    this.enderecoService.atualizarEnderecoPorClienteId(id, enderecoAtualiza);
     return ResponseEntity.noContent().build();
   }
 
-  @PutMapping
-  public ResponseEntity<Void> atualizarEnderecoCliente(@Valid @RequestBody PutEnderecoDTO enderecoAtualiza) {
-    this.enderecoService.atualizarEnderecoPorClienteId(enderecoAtualiza);
+  @DeleteMapping
+  public ResponseEntity<Void> removerEnderecoCliente(
+      @PathVariable @Positive(message = "o id do cliente deve ser maior que zero") Long id) {
+    this.enderecoService.removerEnderecoPorClienteId(id);
     return ResponseEntity.noContent().build();
   }
 }

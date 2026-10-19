@@ -4,10 +4,10 @@ import lombok.Getter;
 
 @Getter
 public class ClienteInvalidoParaDocumentoException extends RuntimeException {
-  private String mensagem;
+  private String customMessage;
 
   public ClienteInvalidoParaDocumentoException(Long clienteId) {
     super("Não é possível encontrar o cliente " + clienteId);
-    this.mensagem = "Não é possivel anexar documento";
+    this.customMessage = "Não é possivel anexar documento";
   }
 }

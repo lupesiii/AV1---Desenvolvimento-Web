@@ -1,7 +1,7 @@
 package com.autobots.automanager.cliente.domain;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import jakarta.persistence.CascadeType;
@@ -23,9 +23,9 @@ public class Cliente extends EntidadeBase {
 	@Column
 	private String nomeSocial;
 	@Column
-	private Date dataNascimento;
+	private LocalDate dataNascimento;
 	@Column
-	private Date dataCadastro;
+	private LocalDate dataCadastro;
 	@OneToOne(mappedBy = "cliente", cascade = CascadeType.ALL, orphanRemoval = true)
 	private Endereco endereco;
 	@OneToMany(mappedBy = "cliente", orphanRemoval = true, cascade = CascadeType.ALL)

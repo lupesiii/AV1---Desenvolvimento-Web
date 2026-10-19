@@ -23,8 +23,6 @@ public class Endereco extends EntidadeBase {
 	private String numero;
 	@Column(nullable = true)
 	private String codigoPostal;
-	@Column(unique = false, nullable = true)
-	private String informacoesAdicionais;
 
 	@OneToOne
 	@JoinColumn(name = "cliente_id", unique = true)

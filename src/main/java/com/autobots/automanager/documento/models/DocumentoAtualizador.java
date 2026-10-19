@@ -1,35 +1,36 @@
 package com.autobots.automanager.documento.models;
 
 import java.util.List;
+import java.util.Objects;
 
 import com.autobots.automanager.common.StringVerificadorNulo;
 import com.autobots.automanager.documento.domain.Documento;
-import com.autobots.automanager.documento.models.dto.PutDocumentoDTO;
+import com.autobots.automanager.documento.models.dto.PatchDocumentoDTO;
 
 public class DocumentoAtualizador {
-	public static void atualizar(Documento documento, PutDocumentoDTO atualizacao) {
+	public static void atualizar(Documento documento, PatchDocumentoDTO atualizacao) {
 		if (atualizacao == null) {
 			return;
 		}
 
-		if (!StringVerificadorNulo.verificar(atualizacao.getTipo())) {
-			documento.setTipo(atualizacao.getTipo());
+		if (!StringVerificadorNulo.verificar(atualizacao.tipo())) {
+			documento.setTipo(atualizacao.tipo());
 		}
 
-		if (!StringVerificadorNulo.verificar(atualizacao.getNumero())) {
-			documento.setNumero(atualizacao.getNumero());
+		if (!StringVerificadorNulo.verificar(atualizacao.numero())) {
+			documento.setNumero(atualizacao.numero());
 		}
 
-		if (!StringVerificadorNulo.verificar(atualizacao.getPath())) {
-			documento.setPath(atualizacao.getPath());
+		if (!StringVerificadorNulo.verificar(atualizacao.path())) {
+			documento.setPath(atualizacao.path());
 		}
 
 	}
 
-	public static void atualizar(List<Documento> documentos, List<PutDocumentoDTO> atualizacoes) {
-		for (PutDocumentoDTO atualizacao : atualizacoes) {
+	public static void atualizar(List<Documento> documentos, List<PatchDocumentoDTO> atualizacoes) {
+		for (PatchDocumentoDTO atualizacao : atualizacoes) {
 			for (Documento documento : documentos) {
-				if (atualizacao.getId() == documento.getId()) {
+				if (atualizacao.id() != null && Objects.equals(atualizacao.id(), documento.getId())) {
 					atualizar(documento, atualizacao);
 				}
 			}

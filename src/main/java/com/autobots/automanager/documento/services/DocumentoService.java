@@ -12,7 +12,7 @@ import com.autobots.automanager.documento.exceptions.ClienteInvalidoParaDocument
 import com.autobots.automanager.documento.exceptions.DocumentoNaoEncontradoException;
 import com.autobots.automanager.documento.models.DocumentoAtualizador;
 import com.autobots.automanager.documento.models.dto.PostDocumentoDTO;
-import com.autobots.automanager.documento.models.dto.PutDocumentoDTO;
+import com.autobots.automanager.documento.models.dto.PatchDocumentoDTO;
 
 @Service
 public class DocumentoService {
@@ -43,25 +43,25 @@ public class DocumentoService {
     return documento;
   }
 
-  public Long cadastrarDocumento(PostDocumentoDTO documentoDTO) {
-    if (!clienteFacade.existeCliente(documentoDTO.getClienteId()))
-      throw new ClienteInvalidoParaDocumentoException(documentoDTO.getClienteId());
+  public Long cadastrarDocumento(Long clienteId, PostDocumentoDTO documentoDTO) {
+    if (!clienteFacade.existeCliente(clienteId))
+      throw new ClienteInvalidoParaDocumentoException(clienteId);
 
     Documento documento = new Documento();
-    documento.setTipo(documentoDTO.getTipo());
-    documento.setNumero(documentoDTO.getNumero());
-    documento.setPath(documentoDTO.getPath());
-    documento.setClienteId(documentoDTO.getClienteId());
+    documento.setTipo(documentoDTO.tipo());
+    documento.setNumero(documentoDTO.numero());
+    documento.setPath(documentoDTO.path());
+    documento.setClienteId(clienteId);
 
     Documento documentoCriado = this.documentoRepository.save(documento);
     return documentoCriado.getId();
   }
 
-  public void atualizarDocumento(PutDocumentoDTO documentoDTO) {
-    Optional<Documento> documentoOpt = this.documentoRepository.findById(documentoDTO.getId());
+  public void atualizarDocumento(PatchDocumentoDTO documentoDTO) {
+    Optional<Documento> documentoOpt = this.documentoRepository.findById(documentoDTO.id());
     Documento documento = documentoOpt
         .orElseThrow(
-            () -> new DocumentoNaoEncontradoException(documentoDTO.getId(), "Não foi possível atualizar o documento"));
+            () -> new DocumentoNaoEncontradoException(documentoDTO.id(), "Não foi possível atualizar o documento"));
 
     DocumentoAtualizador.atualizar(documento, documentoDTO);
     this.documentoRepository.save(documento);

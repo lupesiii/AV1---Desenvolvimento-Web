@@ -9,7 +9,7 @@ import com.autobots.automanager.cliente.domain.Endereco;
 import com.autobots.automanager.cliente.exceptions.EnderecoNaoEncontradoException;
 import com.autobots.automanager.cliente.models.EnderecoAtualizador;
 import com.autobots.automanager.cliente.models.dto.PostEnderecoDTO;
-import com.autobots.automanager.cliente.models.dto.PutEnderecoDTO;
+import com.autobots.automanager.cliente.models.dto.PatchEnderecoDTO;
 import com.autobots.automanager.cliente.ClienteNaoEncontradoException;
 import com.autobots.automanager.cliente.domain.Cliente;
 import com.autobots.automanager.cliente.repositories.ClienteRepository;
@@ -34,18 +34,18 @@ public class EnderecoService {
   }
 
   @Transactional
-  public Long cadastrarEnderecoPorClienteId(PostEnderecoDTO enderecoDTO) {
-    Cliente cliente = clienteRepository.findById(enderecoDTO.getClienteId())
-        .orElseThrow(() -> new ClienteNaoEncontradoException(enderecoDTO.getClienteId(),
+  public Long cadastrarEnderecoPorClienteId(Long clienteId, PostEnderecoDTO enderecoDTO) {
+    Cliente cliente = clienteRepository.findById(clienteId)
+        .orElseThrow(() -> new ClienteNaoEncontradoException(clienteId,
             "Não foi possível cadastrar o endereço"));
 
     Endereco endereco = new Endereco();
-    endereco.setRua(enderecoDTO.getRua());
-    endereco.setNumero(enderecoDTO.getNumero());
-    endereco.setBairro(enderecoDTO.getBairro());
-    endereco.setCidade(enderecoDTO.getCidade());
-    endereco.setEstado(enderecoDTO.getEstado());
-    endereco.setCodigoPostal(enderecoDTO.getCodigoPostal());
+    endereco.setRua(enderecoDTO.rua());
+    endereco.setNumero(enderecoDTO.numero());
+    endereco.setBairro(enderecoDTO.bairro());
+    endereco.setCidade(enderecoDTO.cidade());
+    endereco.setEstado(enderecoDTO.estado());
+    endereco.setCodigoPostal(enderecoDTO.codigoPostal());
     endereco.setCliente(cliente);
 
     return enderecoRepository.save(endereco).getId();
@@ -58,8 +58,8 @@ public class EnderecoService {
     this.enderecoRepository.delete(endereco);
   }
 
-  public void atualizarEnderecoPorClienteId(PutEnderecoDTO enderecoAtualiza) {
-    Optional<Endereco> enderecoOpt = this.enderecoRepository.findByClienteId(enderecoAtualiza.getClienteId());
+  public void atualizarEnderecoPorClienteId(Long clienteId, PatchEnderecoDTO enderecoAtualiza) {
+    Optional<Endereco> enderecoOpt = this.enderecoRepository.findByClienteId(clienteId);
     Endereco endereco = enderecoOpt
         .orElseThrow(() -> new EnderecoNaoEncontradoException(
             "Não foi possivel editar o endereço"));

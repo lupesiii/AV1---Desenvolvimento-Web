@@ -9,15 +9,15 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.autobots.automanager.cliente.ClienteDTO;
-import com.autobots.automanager.cliente.domain.Cliente;
-import com.autobots.automanager.cliente.models.dto.PutClienteDTO;
+import com.autobots.automanager.cliente.models.dto.PatchClienteDTO;
+import com.autobots.automanager.cliente.models.dto.response.ClienteResponseDTO;
 import com.autobots.automanager.cliente.services.ClienteService;
 
 import jakarta.validation.Valid;
@@ -34,31 +34,31 @@ public class ClienteController {
 	}
 
 	@GetMapping
-	public ResponseEntity<List<Cliente>> obterClientes() {
-		List<Cliente> clientes = this.clienteService.obterClientes();
+	public ResponseEntity<List<ClienteResponseDTO>> obterClientes() {
+		List<ClienteResponseDTO> clientes = this.clienteService.obterClientes();
 
 		return ResponseEntity.ok(clientes);
 	}
 
 	@GetMapping("/{id}")
-	public ResponseEntity<Cliente> obterCliente(
+	public ResponseEntity<ClienteResponseDTO> obterCliente(
 			@PathVariable @Positive(message = "o id deve ser maior que zero") Long id) {
-		Cliente cliente = this.clienteService.obterClientePorId(id);
+		ClienteResponseDTO cliente = this.clienteService.obterClientePorId(id);
 		return ResponseEntity.ok(cliente);
 	}
 
 	@PostMapping
-	public ResponseEntity<String> cadastrarCliente(@Valid @RequestBody ClienteDTO cliente) {
+	public ResponseEntity<Void> cadastrarCliente(@Valid @RequestBody ClienteDTO cliente) {
 		Long id = this.clienteService.cadastrarCliente(cliente);
 		URI location = ServletUriComponentsBuilder.fromCurrentRequest()
 				.path("/{id}")
 				.buildAndExpand(id)
 				.toUri();
-		return ResponseEntity.created(location).body("Cliente cadastrado com sucesso");
+		return ResponseEntity.created(location).build();
 	}
 
-	@PutMapping
-	public ResponseEntity<Void> atualizarCliente(@Valid @RequestBody PutClienteDTO clienteDTO) {
+	@PatchMapping
+	public ResponseEntity<Void> atualizarCliente(@Valid @RequestBody PatchClienteDTO clienteDTO) {
 		this.clienteService.atualizarCliente(clienteDTO);
 		return ResponseEntity.noContent().build();
 	}

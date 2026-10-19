@@ -9,7 +9,7 @@ import com.autobots.automanager.cliente.domain.Telefone;
 import com.autobots.automanager.cliente.exceptions.TelefoneJaExisteException;
 import com.autobots.automanager.cliente.exceptions.TelefoneNaoEncontradoException;
 import com.autobots.automanager.cliente.models.TelefoneAtualizador;
-import com.autobots.automanager.cliente.models.dto.PutTelefoneDTO;
+import com.autobots.automanager.cliente.models.dto.PatchTelefoneDTO;
 import com.autobots.automanager.cliente.models.dto.TelefoneDTO;
 import com.autobots.automanager.cliente.repositories.ClienteRepository;
 import com.autobots.automanager.cliente.repositories.TelefoneRepository;
@@ -30,25 +30,30 @@ public class TelefoneService {
     return telefones;
   }
 
-  public void cadastrarTelefonePorClienteId(TelefoneDTO telefoneDTO) {
-    boolean existsCliente = this.clienteRepositorio.existsById(telefoneDTO.getClienteId());
-    if (!existsCliente)
-      throw new ClienteNaoEncontradoException(telefoneDTO.getClienteId(), "Não foi possível cadastrar o telefone");
+  public Telefone obterTelefonePorId(Long telefoneId) {
+    return this.telefoneRepositorio.findById(telefoneId)
+        .orElseThrow(() -> new TelefoneNaoEncontradoException("Telefone não encontrado: " + telefoneId,
+            "Não foi possível obter o número"));
+  }
 
-    boolean existsTelefone = this.telefoneRepositorio.existsByDddAndNumero(telefoneDTO.getDdd(),
-        telefoneDTO.getNumero());
+  public Long cadastrarTelefonePorClienteId(TelefoneDTO telefoneDTO) {
+    boolean existsCliente = this.clienteRepositorio.existsById(telefoneDTO.clienteId());
+    if (!existsCliente)
+      throw new ClienteNaoEncontradoException(telefoneDTO.clienteId(), "Não foi possível cadastrar o telefone");
+
+    boolean existsTelefone = this.telefoneRepositorio.existsByDddAndNumero(telefoneDTO.ddd(),
+        telefoneDTO.numero());
     if (existsTelefone) {
-      String numeroFormatado = Telefone.formataNumero(telefoneDTO.getDdd() + telefoneDTO.getNumero());
-      String tituloException = "O telefone de número %s".formatted(numeroFormatado);
-      throw new TelefoneJaExisteException(tituloException, "Não foi possível cadastrar o número");
+      String numeroFormatado = Telefone.formataNumero(telefoneDTO.ddd() + telefoneDTO.numero());
+      throw new TelefoneJaExisteException(numeroFormatado, "Não foi possível cadastrar o número");
     }
 
     Telefone telefone = new Telefone();
-    telefone.setDdd(telefoneDTO.getDdd());
-    telefone.setNumero(telefoneDTO.getNumero());
-    telefone.setCliente(clienteRepositorio.getReferenceById(telefoneDTO.getClienteId()));
+    telefone.setDdd(telefoneDTO.ddd());
+    telefone.setNumero(telefoneDTO.numero());
+    telefone.setCliente(clienteRepositorio.getReferenceById(telefoneDTO.clienteId()));
 
-    this.telefoneRepositorio.save(telefone);
+    return this.telefoneRepositorio.save(telefone).getId();
   }
 
   public void removerTelefonePorId(Long telefoneId) {
@@ -59,10 +64,17 @@ public class TelefoneService {
     this.telefoneRepositorio.deleteById(telefoneId);
   }
 
-  public void atualizarTelefonePorId(PutTelefoneDTO telefoneDTO) {
-    Telefone telefone = this.telefoneRepositorio.findById(telefoneDTO.getTelefoneId())
-        .orElseThrow(() -> new TelefoneNaoEncontradoException("Telefone não encontrado: " + telefoneDTO.getTelefoneId(),
+  public void atualizarTelefonePorId(PatchTelefoneDTO telefoneDTO) {
+    Telefone telefone = this.telefoneRepositorio.findById(telefoneDTO.telefoneId())
+        .orElseThrow(() -> new TelefoneNaoEncontradoException("Telefone não encontrado: " + telefoneDTO.telefoneId(),
             "Não foi possível remover o número"));
+
+    boolean existsTelefone = this.telefoneRepositorio.existsByDddAndNumero(telefoneDTO.ddd(),
+        telefoneDTO.numero());
+    if (existsTelefone) {
+      String numeroFormatado = Telefone.formataNumero(telefoneDTO.ddd() + telefoneDTO.numero());
+      throw new TelefoneJaExisteException(numeroFormatado, "Não foi possível atualizar o número");
+    }
 
     boolean existsCliente = this.clienteRepositorio.existsById(telefone.getCliente().getId());
     if (!existsCliente)

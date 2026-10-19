@@ -2,6 +2,10 @@
 
 Microsserviço Spring Boot para cadastro dos dados do cliente (clientes, documentos, endereços e telefones).
 
+## Evolução para hipermídia
+
+O [contrato de hipermídia baseado em HAL](docs/contrato-hipermidia.md) define o formato proposto das respostas, as relações entre recursos, os exemplos e os critérios de aceitação para implementação. O documento também registra as rotas conferidas nos controllers em 18/10/2026; as tabelas e exemplos de endpoints abaixo ainda precisam ser atualizados nos pontos em que divergem desse inventário. HAL ainda não está implementado na aplicação.
+
 ## Requisitos
 
 - Java Development Kit (JDK) 21 ou superior. Confirme com `java -version`;
@@ -39,7 +43,7 @@ Os identificadores nas rotas devem ser números maiores que zero.
 | -------------------------------------- | --------------------------------------- |
 | `GET /clientes` / `GET /clientes/{id}` | Lista / consulta                        |
 | `POST /clientes`                       | Cadastra cliente.                       |
-| `PUT /clientes`                        | Atualiza cliente; informe `id` no JSON. |
+| `PATCH /clientes`                      | Atualiza cliente; informe `id` no JSON. |
 | `DELETE /clientes/{id}`                | Exclui o cliente indicado na rota.      |
 
 Campos do cadastro (`POST`):
@@ -72,10 +76,10 @@ curl http://localhost:8080/clientes/1
 curl -X DELETE http://localhost:8080/clientes/1
 ```
 
-Atualização (`PUT /clientes`): envie o `id` no corpo. Os demais campos são opcionais; só o que for informado é alterado.
+Atualização (`PATCH /clientes`): envie o `id` no corpo. Os demais campos são opcionais; só o que for informado é alterado.
 
 ```bash
-curl -X PUT http://localhost:8080/clientes \
+curl -X PATCH http://localhost:8080/clientes \
   -H 'Content-Type: application/json' \
   -d '{
     "id": 1,
@@ -94,7 +98,7 @@ O número do documento é único no banco. Cada documento pertence a um cliente 
 | `GET /documentos` / `GET /documentos/{id}` | Lista todos / consulta pelo identificador. |
 | `GET /documentos/cliente/{clienteId}`      | Lista os documentos do cliente.            |
 | `POST /documentos`                         | Cadastra documento.                        |
-| `PUT /documentos`                          | Atualiza; informe `id` no corpo.           |
+| `PATCH /documentos`                        | Atualiza; informe `id` no corpo.           |
 | `DELETE /documentos/{id}`                  | Exclui pelo identificador.                 |
 
 Campos do cadastro (`POST`):
@@ -113,13 +117,13 @@ curl -X POST http://localhost:8080/documentos \
 curl http://localhost:8080/documentos
 curl http://localhost:8080/documentos/1
 curl http://localhost:8080/documentos/cliente/1
-curl -X PUT http://localhost:8080/documentos \
+curl -X PATCH http://localhost:8080/documentos \
   -H 'Content-Type: application/json' \
   -d '{"id":1,"tipo":"CPF","numero":"12345678900","path":"/docs/cpf.pdf"}'
 curl -X DELETE http://localhost:8080/documentos/1
 ```
 
-No `PUT`, `tipo`, `numero` e `path` são opcionais; só o que for informado é alterado.
+No `PATCH`, `tipo`, `numero` e `path` são opcionais; só o que for informado é alterado.
 
 ### Endereços
 
@@ -129,7 +133,7 @@ Cada cliente possui no máximo um endereço.
 | -------------------------------- | ------------------------------------------------------------- |
 | `GET /enderecos/cliente/{id}`    | Consulta o endereço do cliente.                               |
 | `POST /enderecos`                | Cadastra endereço para o cliente informado no JSON.           |
-| `PUT /enderecos`                 | Atualiza o endereço do cliente; informe `clienteId` no corpo. |
+| `PATCH /enderecos`               | Atualiza o endereço do cliente; informe `clienteId` no corpo. |
 | `DELETE /enderecos/cliente/{id}` | Remove o endereço do cliente.                                 |
 
 Campos do cadastro (`POST`):
@@ -157,7 +161,7 @@ curl -X POST http://localhost:8080/enderecos \
     "codigoPostal": "01000-000"
   }'
 curl http://localhost:8080/enderecos/cliente/1
-curl -X PUT http://localhost:8080/enderecos \
+curl -X PATCH http://localhost:8080/enderecos \
   -H 'Content-Type: application/json' \
   -d '{
     "clienteId": 1,
@@ -171,7 +175,7 @@ curl -X PUT http://localhost:8080/enderecos \
 curl -X DELETE http://localhost:8080/enderecos/cliente/1
 ```
 
-No `PUT`, além de `clienteId`, os demais campos são opcionais; só o que for informado é alterado.
+No `PATCH`, além de `clienteId`, os demais campos são opcionais; só o que for informado é alterado.
 
 ### Telefones
 
@@ -179,10 +183,13 @@ Não é permitido cadastrar o mesmo par DDD + número mais de uma vez.
 
 | Método e rota                        | Ação                                                |
 | ------------------------------------ | --------------------------------------------------- |
-| `GET /telefones/cliente/{clienteId}` | Lista os telefones do cliente.                      |
+| `GET /clientes/{clienteId}/telefones` | Lista os telefones do cliente.                      |
+| `GET /telefones/{telefoneId}`        | Consulta um telefone pelo identificador.            |
 | `POST /telefones`                    | Cadastra telefone para o cliente informado no JSON. |
-| `PUT /telefones`                     | Atualiza o telefone; informe `telefoneId` no corpo. |
+| `PATCH /telefones`                   | Atualiza o telefone; informe `telefoneId` no corpo. |
 | `DELETE /telefones/{telefoneId}`     | Exclui pelo identificador do telefone.              |
+
+O cadastro retorna `201 Created` com o cabeçalho `Location` apontando para o telefone criado, por exemplo `/telefones/42`. Essa URI pode ser consultada com `GET`; um telefone inexistente retorna `404 Not Found`.
 
 Campos do cadastro (`POST`):
 
@@ -196,11 +203,12 @@ Campos do cadastro (`POST`):
 curl -X POST http://localhost:8080/telefones \
   -H 'Content-Type: application/json' \
   -d '{"clienteId":1,"ddd":"11","numero":"999991234"}'
-curl http://localhost:8080/telefones/cliente/1
-curl -X PUT http://localhost:8080/telefones \
+curl http://localhost:8080/clientes/1/telefones
+curl http://localhost:8080/telefones/1
+curl -X PATCH http://localhost:8080/telefones \
   -H 'Content-Type: application/json' \
   -d '{"telefoneId":1,"ddd":"11","numero":"988881234"}'
 curl -X DELETE http://localhost:8080/telefones/1
 ```
 
-No `PUT`, `ddd` e `numero` são opcionais; só o que for informado é alterado.
+No `PATCH`, `ddd` e `numero` são opcionais; só o que for informado é alterado.

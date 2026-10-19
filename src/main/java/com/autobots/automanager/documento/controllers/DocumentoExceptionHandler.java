@@ -2,6 +2,7 @@ package com.autobots.automanager.documento.controllers;
 
 import java.util.stream.Collectors;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -17,6 +18,11 @@ import com.autobots.automanager.documento.exceptions.DocumentoNaoEncontradoExcep
 
 @RestControllerAdvice(basePackageClasses = DocumentoController.class)
 public class DocumentoExceptionHandler {
+  @ExceptionHandler(DataIntegrityViolationException.class)
+  public ResponseEntity<RespostaErroDTO> handleViolacaoIntegridade(DataIntegrityViolationException ex) {
+    return new ResponseEntity<RespostaErroDTO>(new RespostaErroDTO(ex.getMessage(), ""), HttpStatus.CONFLICT);
+  }
+
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<RespostaErroDTO> handleCorpoInvalido(MethodArgumentNotValidException ex) {
     String mensagem = ex.getBindingResult().getFieldErrors().stream()
@@ -41,7 +47,7 @@ public class DocumentoExceptionHandler {
 
   @ExceptionHandler(ClienteInvalidoParaDocumentoException.class)
   public ResponseEntity<RespostaErroDTO> handleClienteInvalidoException(ClienteInvalidoParaDocumentoException ex) {
-    RespostaErroDTO erroResposta = new RespostaErroDTO(ex.getMessage(), ex.getMensagem());
+    RespostaErroDTO erroResposta = new RespostaErroDTO(ex.getMessage(), ex.getCustomMessage());
     return new ResponseEntity<RespostaErroDTO>(erroResposta, HttpStatus.NOT_FOUND);
   }
 

@@ -1,29 +1,30 @@
 package com.autobots.automanager.cliente.models;
 
 import java.util.List;
+import java.util.Objects;
 
 import com.autobots.automanager.cliente.domain.Telefone;
-import com.autobots.automanager.cliente.models.dto.PutTelefoneDTO;
+import com.autobots.automanager.cliente.models.dto.PatchTelefoneDTO;
 import com.autobots.automanager.common.StringVerificadorNulo;
 
 public class TelefoneAtualizador {
-	public static void atualizar(Telefone telefone, PutTelefoneDTO atualizacao) {
+	public static void atualizar(Telefone telefone, PatchTelefoneDTO atualizacao) {
 
 		if (atualizacao != null) {
-			if (!StringVerificadorNulo.verificar(atualizacao.getDdd())) {
-				telefone.setDdd(atualizacao.getDdd());
+			if (!StringVerificadorNulo.verificar(atualizacao.ddd())) {
+				telefone.setDdd(atualizacao.ddd());
 			}
-			if (!StringVerificadorNulo.verificar(atualizacao.getNumero())) {
-				telefone.setNumero(atualizacao.getNumero());
+			if (!StringVerificadorNulo.verificar(atualizacao.numero())) {
+				telefone.setNumero(atualizacao.numero());
 			}
 		}
 	}
 
-	public static void atualizar(List<Telefone> telefones, List<PutTelefoneDTO> atualizacoes) {
-		for (PutTelefoneDTO atualizacao : atualizacoes) {
+	public static void atualizar(List<Telefone> telefones, List<PatchTelefoneDTO> atualizacoes) {
+		for (PatchTelefoneDTO atualizacao : atualizacoes) {
 			for (Telefone telefone : telefones) {
-				if (atualizacao.getTelefoneId() != null) {
-					if (atualizacao.getTelefoneId() == telefone.getId()) {
+				if (atualizacao.telefoneId() != null) {
+					if (Objects.equals(atualizacao.telefoneId(), telefone.getId())) {
 						atualizar(telefone, atualizacao);
 					}
 				}
