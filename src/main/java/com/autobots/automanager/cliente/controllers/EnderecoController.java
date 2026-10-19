@@ -1,18 +1,23 @@
 package com.autobots.automanager.cliente.controllers;
 
+import static com.autobots.automanager.common.Hypermedia.link;
+
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.MediaTypes;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import com.autobots.automanager.cliente.domain.Endereco;
+import com.autobots.automanager.cliente.models.ClienteMapper;
+import com.autobots.automanager.cliente.models.EnderecoModelAssembler;
+import com.autobots.automanager.cliente.models.dto.response.EnderecoResponseDTO;
+import com.autobots.automanager.common.ApiRoutes;
 import com.autobots.automanager.cliente.models.dto.PostEnderecoDTO;
 import com.autobots.automanager.cliente.models.dto.PatchEnderecoDTO;
 import com.autobots.automanager.cliente.services.EnderecoService;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
-
-import java.net.URI;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -25,18 +30,26 @@ import org.springframework.web.bind.annotation.PatchMapping;
 
 @Validated
 @RestController
-@RequestMapping("/clientes/{id}/endereco")
+@RequestMapping(ApiRoutes.ENDERECO)
 public class EnderecoController {
   private final EnderecoService enderecoService;
+  private final EnderecoModelAssembler assembler;
 
-  public EnderecoController(EnderecoService enderecoService) {
+  public EnderecoController(EnderecoService enderecoService, EnderecoModelAssembler assembler) {
     this.enderecoService = enderecoService;
+    this.assembler = assembler;
   }
 
-  @GetMapping
-  public ResponseEntity<Endereco> obterClienteEndereco(
+  @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<EnderecoResponseDTO> obterClienteEndereco(
       @PathVariable @Positive(message = "o id do cliente deve ser maior que 0") Long id) {
-    return ResponseEntity.ok(this.enderecoService.obterEnderecoPorClienteId(id));
+    return ResponseEntity.ok(ClienteMapper.toResponseDTO(this.enderecoService.obterEnderecoPorClienteId(id)));
+  }
+
+  @GetMapping(produces = { MediaTypes.HAL_JSON_VALUE, MediaTypes.HAL_FORMS_JSON_VALUE })
+  public EntityModel<EnderecoResponseDTO> obterClienteEnderecoHal(
+      @PathVariable @Positive(message = "o id do cliente deve ser maior que zero") Long id) {
+    return assembler.toModel(enderecoService.obterEnderecoPorClienteId(id));
   }
 
   @PostMapping
@@ -44,10 +57,7 @@ public class EnderecoController {
       @PathVariable @Positive(message = "o id do cliente deve ser maior que 0") Long id,
       @Valid @RequestBody PostEnderecoDTO enderecoDTO) {
     this.enderecoService.cadastrarEnderecoPorClienteId(id, enderecoDTO);
-    URI location = ServletUriComponentsBuilder.fromCurrentRequest()
-        .buildAndExpand(id)
-        .toUri();
-    return ResponseEntity.created(location).build();
+    return ResponseEntity.created(link(ApiRoutes.ENDERECO, id).toUri()).build();
   }
 
   @PatchMapping

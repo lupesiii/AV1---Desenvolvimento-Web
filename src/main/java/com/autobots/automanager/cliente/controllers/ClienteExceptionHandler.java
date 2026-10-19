@@ -45,7 +45,7 @@ public class ClienteExceptionHandler {
 
   @ExceptionHandler(DataIntegrityViolationException.class)
   public ResponseEntity<RespostaErroDTO> handleDataViolation(DataIntegrityViolationException ex) {
-    RespostaErroDTO erroResposta = new RespostaErroDTO(ex.getMessage(), ex.getLocalizedMessage());
+    RespostaErroDTO erroResposta = new RespostaErroDTO("Conflito de dados", "Os dados informados violam uma restrição de integridade.");
     return new ResponseEntity<RespostaErroDTO>(erroResposta, HttpStatus.CONFLICT);
   }
 

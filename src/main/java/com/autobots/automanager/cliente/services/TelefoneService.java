@@ -3,6 +3,7 @@ package com.autobots.automanager.cliente.services;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.autobots.automanager.cliente.ClienteNaoEncontradoException;
 import com.autobots.automanager.cliente.domain.Telefone;
@@ -25,6 +26,9 @@ public class TelefoneService {
   }
 
   public List<Telefone> obterTelefonePorClienteId(Long id) {
+    if (!clienteRepositorio.existsById(id)) {
+      throw new ClienteNaoEncontradoException(id, "Não foi possível obter os telefones");
+    }
     List<Telefone> telefones = this.telefoneRepositorio.findTelefonesByClienteId(id);
 
     return telefones;
@@ -56,12 +60,13 @@ public class TelefoneService {
     return this.telefoneRepositorio.save(telefone).getId();
   }
 
+  @Transactional
   public void removerTelefonePorId(Long telefoneId) {
-    if (!this.telefoneRepositorio.existsById(telefoneId)) {
-      throw new TelefoneNaoEncontradoException("Telefone não encontrado: " + telefoneId,
-          "Não foi possível remover o número");
-    }
-    this.telefoneRepositorio.deleteById(telefoneId);
+    Telefone telefone = telefoneRepositorio.findById(telefoneId)
+        .orElseThrow(() -> new TelefoneNaoEncontradoException("Telefone não encontrado: " + telefoneId,
+            "Não foi possível remover o número"));
+    telefone.getCliente().removeTelefone(telefone);
+    telefoneRepositorio.delete(telefone);
   }
 
   public void atualizarTelefonePorId(PatchTelefoneDTO telefoneDTO) {

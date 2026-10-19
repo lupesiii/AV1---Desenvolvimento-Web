@@ -20,7 +20,8 @@ import com.autobots.automanager.documento.exceptions.DocumentoNaoEncontradoExcep
 public class DocumentoExceptionHandler {
   @ExceptionHandler(DataIntegrityViolationException.class)
   public ResponseEntity<RespostaErroDTO> handleViolacaoIntegridade(DataIntegrityViolationException ex) {
-    return new ResponseEntity<RespostaErroDTO>(new RespostaErroDTO(ex.getMessage(), ""), HttpStatus.CONFLICT);
+    return new ResponseEntity<RespostaErroDTO>(new RespostaErroDTO("Conflito de dados",
+        "Os dados informados violam uma restrição de integridade."), HttpStatus.CONFLICT);
   }
 
   @ExceptionHandler(MethodArgumentNotValidException.class)

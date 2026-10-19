@@ -1,214 +1,208 @@
 # Automanager
 
-Microsserviço Spring Boot para cadastro dos dados do cliente (clientes, documentos, endereços e telefones).
+API REST para cadastro e gerenciamento de clientes, endereços, telefones e documentos. O projeto é organizado em módulos com Spring Modulith e oferece representações JSON, HAL e HAL-FORMS. A hipermídia permite navegar entre os recursos e descobrir as operações de escrita, seguindo o nível 3 do modelo de maturidade de Richardson (RMM).
 
-## Evolução para hipermídia
+## Tecnologias
 
-O [contrato de hipermídia baseado em HAL](docs/contrato-hipermidia.md) define o formato proposto das respostas, as relações entre recursos, os exemplos e os critérios de aceitação para implementação. O documento também registra as rotas conferidas nos controllers em 18/10/2026; as tabelas e exemplos de endpoints abaixo ainda precisam ser atualizados nos pontos em que divergem desse inventário. HAL ainda não está implementado na aplicação.
+| Tecnologia | Uso no projeto |
+| --- | --- |
+| Java 21 | Versão definida para compilação |
+| Spring Boot 3.4.13 | Inicialização da aplicação e API HTTP com Spring MVC |
+| Spring Modulith 1.3.0 | Organização e verificação das fronteiras entre módulos |
+| Spring Data JPA / Hibernate | Persistência e relacionamentos entre entidades |
+| H2 | Banco de dados em memória |
+| Spring HATEOAS | Links HAL e ações HAL-FORMS |
+| Jakarta Bean Validation | Validação dos corpos e parâmetros das requisições |
+| Lombok | Geração de métodos nas entidades e DTOs de erro |
+| JUnit 5 e Spring Boot Test | Testes de contexto e modularidade |
 
-## Requisitos
+## Executar
 
-- Java Development Kit (JDK) 21 ou superior. Confirme com `java -version`;
-- Acesso local pela porta padrão do Spring Boot (`8080`);
-- Utilização do H2 (as informações do banco ficam armazenadas na memória da sessão).
+Utilize o JDK 21 e o Maven Wrapper incluído no repositório, configurado com Maven 3.8.4. Não é necessário instalar o Maven separadamente. A primeira execução precisa de acesso à internet para baixar o Maven e as dependências.
 
-## Como executar
-
-Abra um terminal na raiz do repositório.
-
-No Linux ou macOS, permita a execução do wrapper (se necessário) e inicie a aplicação:
+Na raiz do projeto:
 
 ```bash
-chmod +x ./mvnw
 ./mvnw spring-boot:run
 ```
 
-No Windows, use o Prompt de Comando ou PowerShell:
+No Windows, use `.\mvnw.cmd` no lugar de `./mvnw`. A aplicação fica disponível em [http://localhost:8080](http://localhost:8080).
 
-```bat
-mvnw.cmd spring-boot:run
-```
-
-Ou, no VSCode, execute a aplicação pela interface gráfica (botão de play).
-
-Espere a mensagem de inicialização do Spring Boot. A API ficará disponível em `http://localhost:8080`.
-
-## Endpoints
-
-Os identificadores nas rotas devem ser números maiores que zero.
-
-### Clientes
-
-| Método e rota                          | Ação                                    |
-| -------------------------------------- | --------------------------------------- |
-| `GET /clientes` / `GET /clientes/{id}` | Lista / consulta                        |
-| `POST /clientes`                       | Cadastra cliente.                       |
-| `PATCH /clientes`                      | Atualiza cliente; informe `id` no JSON. |
-| `DELETE /clientes/{id}`                | Exclui o cliente indicado na rota.      |
-
-Campos do cadastro (`POST`):
-
-| Campo            | Obrigatório | Observação                                                          |
-| ---------------- | ----------- | ------------------------------------------------------------------- |
-| `nome`           | Sim         | Até 255 caracteres.                                                 |
-| `nomeSocial`     | Não         | Até 255 caracteres.                                                 |
-| `dataNascimento` | Não         | Deve estar no passado. A `dataCadastro` é preenchida pelo servidor. |
-
-Documentos, endereço e telefones **não** são enviados no cadastro do cliente; use os endpoints específicos depois de obter o `id` (cabeçalho `Location` da resposta `201`).
-
-Exemplo de cadastro:
+Para gerar e executar o JAR:
 
 ```bash
-curl -X POST http://localhost:8080/clientes \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "nome": "Ana Souza",
-    "nomeSocial": "Ana",
-    "dataNascimento": "1995-04-12T00:00:00.000+00:00"
-  }'
+./mvnw clean package
+java -jar target/automanager-0.0.1-SNAPSHOT.jar
 ```
 
-Consultas e exclusão:
+O arquivo [`application.properties`](src/main/resources/application.properties) está sem configurações específicas. Com as dependências atuais, o Spring Boot configura o H2 em memória e cria o esquema a partir das entidades JPA. Os dados são perdidos ao encerrar a aplicação; nenhum banco externo precisa ser preparado.
+
+Configurações podem ser adicionadas ao arquivo ou fornecidas externamente. Por exemplo, em Bash, para mudar a porta:
 
 ```bash
-curl http://localhost:8080/clientes
-curl http://localhost:8080/clientes/1
-curl -X DELETE http://localhost:8080/clientes/1
+SERVER_PORT=8081 ./mvnw spring-boot:run
 ```
 
-Atualização (`PATCH /clientes`): envie o `id` no corpo. Os demais campos são opcionais; só o que for informado é alterado.
+## Organização do projeto
 
-```bash
-curl -X PATCH http://localhost:8080/clientes \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "id": 1,
-    "nome": "Ana Souza Silva",
-    "nomeSocial": "Ana",
-    "dataNascimento": "1995-04-12T00:00:00.000+00:00"
-  }'
+```text
+src/main/java/com/autobots/automanager/
+├── AutobotsApplication.java       # Inicialização do Spring Boot
+├── ApiController.java             # Ponto de entrada da API
+├── HypermediaConfiguration.java   # Negociação de conteúdo e suporte à hipermídia
+├── cliente/                       # Clientes, endereços e telefones
+│   ├── controllers/
+│   ├── domain/
+│   ├── models/                    # DTOs, mapeadores, atualizadores e assemblers
+│   ├── repositories/
+│   └── services/
+├── documento/                     # Documentos vinculados a clientes
+│   ├── controllers/
+│   ├── domain/
+│   ├── models/
+│   ├── repositories/
+│   └── services/
+└── common/                        # Rotas, utilitários e metadados de hipermídia
 ```
 
-### Documentos
+O módulo `cliente` gerencia um endereço e vários telefones por cliente. O módulo `documento` mantém o vínculo pelo campo `clienteId` e consulta a existência do cliente por meio de `ClienteFacade`, sem acessar suas entidades ou repositórios internos.
 
-O número do documento é único no banco. Cada documento pertence a um cliente (`clienteId`).
+Ao excluir um cliente, endereço e telefones são removidos em cascata pelo JPA. O evento síncrono `ClienteExcluido` aciona a remoção dos documentos na mesma transação.
 
-| Método e rota                              | Ação                                       |
-| ------------------------------------------ | ------------------------------------------ |
-| `GET /documentos` / `GET /documentos/{id}` | Lista todos / consulta pelo identificador. |
-| `GET /documentos/cliente/{clienteId}`      | Lista os documentos do cliente.            |
-| `POST /documentos`                         | Cadastra documento.                        |
-| `PATCH /documentos`                        | Atualiza; informe `id` no corpo.           |
-| `DELETE /documentos/{id}`                  | Exclui pelo identificador.                 |
+## Descobrir a API
 
-Campos do cadastro (`POST`):
-
-| Campo       | Obrigatório | Observação                          |
-| ----------- | ----------- | ----------------------------------- |
-| `tipo`      | Sim         | Até 255 caracteres.                 |
-| `numero`    | Sim         | Até 255 caracteres; único.          |
-| `path`      | Não         | Até 255 caracteres.                 |
-| `clienteId` | Sim         | Identificador do cliente existente. |
+O ponto de entrada é `GET /`. Siga os endereços em `_links`, sem montar URLs a partir dos identificadores.
 
 ```bash
-curl -X POST http://localhost:8080/documentos \
-  -H 'Content-Type: application/json' \
-  -d '{"tipo":"CPF","numero":"12345678900","path":"/docs/cpf.pdf","clienteId":1}'
-curl http://localhost:8080/documentos
-curl http://localhost:8080/documentos/1
-curl http://localhost:8080/documentos/cliente/1
-curl -X PATCH http://localhost:8080/documentos \
-  -H 'Content-Type: application/json' \
-  -d '{"id":1,"tipo":"CPF","numero":"12345678900","path":"/docs/cpf.pdf"}'
-curl -X DELETE http://localhost:8080/documentos/1
+curl http://localhost:8080/ -H 'Accept: application/hal+json'
+curl http://localhost:8080/clientes -H 'Accept: application/prs.hal-forms+json'
 ```
 
-No `PATCH`, `tipo`, `numero` e `path` são opcionais; só o que for informado é alterado.
+| Cabeçalho `Accept` | Representação |
+| --- | --- |
+| `application/json` | JSON nas rotas de clientes, endereços, telefones e documentos |
+| `application/hal+json` | Recursos com `_links` e coleções com `_embedded` |
+| `application/prs.hal-forms+json` | HAL mais `_templates`, com método, destino e campos das ações disponíveis |
+| Ausente ou `*/*` | HAL na raiz e JSON nas demais rotas |
 
-### Endereços
+A raiz aceita HAL e HAL-FORMS. Tipos não suportados retornam `406 Not Acceptable`, e as respostas incluem `Vary: Accept`.
 
-Cada cliente possui no máximo um endereço.
+No JSON de cliente, endereço e telefones aparecem incorporados. Em HAL/HAL-FORMS, esses relacionamentos são acessados por links. As coleções HAL mantêm arrays em `_embedded` mesmo quando vazias. O link de endereço só aparece quando há endereço cadastrado; a ação HAL-FORMS de cadastro só aparece quando ele ainda não existe.
 
-| Método e rota                    | Ação                                                          |
-| -------------------------------- | ------------------------------------------------------------- |
-| `GET /enderecos/cliente/{id}`    | Consulta o endereço do cliente.                               |
-| `POST /enderecos`                | Cadastra endereço para o cliente informado no JSON.           |
-| `PATCH /enderecos`               | Atualiza o endereço do cliente; informe `clienteId` no corpo. |
-| `DELETE /enderecos/cliente/{id}` | Remove o endereço do cliente.                                 |
+POST e PATCH recebem `Content-Type: application/json`. Os cadastros retornam `201 Created`, sem corpo, com `Location` para consultar o recurso criado. PATCH e DELETE retornam `204 No Content`.
 
-Campos do cadastro (`POST`):
+Veja o [contrato implementado e os exemplos de navegação e ações](HATEOAS.md).
 
-| Campo          | Obrigatório | Observação                          |
-| -------------- | ----------- | ----------------------------------- |
-| `clienteId`    | Sim         | Identificador do cliente existente. |
-| `cidade`       | Sim         | Até 255 caracteres.                 |
-| `rua`          | Sim         | Até 255 caracteres.                 |
-| `numero`       | Sim         | Número do imóvel (texto, até 255).  |
-| `estado`       | Não         | Até 255 caracteres.                 |
-| `bairro`       | Não         | Até 255 caracteres.                 |
-| `codigoPostal` | Não         | Formato `00000-000` ou `00000000`.  |
+## Rotas
 
-```bash
-curl -X POST http://localhost:8080/enderecos \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "clienteId": 1,
-    "estado": "SP",
-    "cidade": "São Paulo",
-    "bairro": "Centro",
-    "rua": "Rua A",
-    "numero": "100",
-    "codigoPostal": "01000-000"
-  }'
-curl http://localhost:8080/enderecos/cliente/1
-curl -X PATCH http://localhost:8080/enderecos \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "clienteId": 1,
-    "estado": "SP",
-    "cidade": "São Paulo",
-    "bairro": "Centro",
-    "rua": "Rua B",
-    "numero": "200",
-    "codigoPostal": "01000-000"
-  }'
-curl -X DELETE http://localhost:8080/enderecos/cliente/1
-```
+Todos os identificadores devem ser positivos. `GET /` é o ponto de entrada para descoberta das coleções de clientes e documentos.
 
-No `PATCH`, além de `clienteId`, os demais campos são opcionais; só o que for informado é alterado.
+| Recurso | Consultas | Cadastro | Atualização | Exclusão |
+| --- | --- | --- | --- | --- |
+| Clientes | `GET /clientes`, `GET /clientes/{id}` | `POST /clientes` | `PATCH /clientes` (`id` no corpo) | `DELETE /clientes/{id}` |
+| Endereço | `GET /clientes/{id}/endereco` | `POST /clientes/{id}/endereco` | `PATCH /clientes/{id}/endereco` | `DELETE /clientes/{id}/endereco` |
+| Telefones | `GET /clientes/{clienteId}/telefones`, `GET /telefones/{telefoneId}` | `POST /telefones` (`clienteId` no corpo) | `PATCH /telefones` (`telefoneId` no corpo) | `DELETE /telefones/{telefoneId}` |
+| Documentos | `GET /documentos`, `GET /documentos/{id}`, `GET /clientes/{clienteId}/documentos` | `POST /clientes/{clienteId}/documentos` | `PATCH /documentos` (`id` no corpo) | `DELETE /documentos/{id}` |
 
-### Telefones
+As rotas de endereço recebem o **ID do cliente**, que pode ser diferente do ID do endereço. O cadastro de documentos parte de um cliente; a coleção global `/documentos` permite listar os documentos de todos os clientes.
 
-Não é permitido cadastrar o mesmo par DDD + número mais de uma vez.
+## Exemplos de uso
 
-| Método e rota                        | Ação                                                |
-| ------------------------------------ | --------------------------------------------------- |
-| `GET /clientes/{clienteId}/telefones` | Lista os telefones do cliente.                      |
-| `GET /telefones/{telefoneId}`        | Consulta um telefone pelo identificador.            |
-| `POST /telefones`                    | Cadastra telefone para o cliente informado no JSON. |
-| `PATCH /telefones`                   | Atualiza o telefone; informe `telefoneId` no corpo. |
-| `DELETE /telefones/{telefoneId}`     | Exclui pelo identificador do telefone.              |
+Os exemplos abaixo usam Bash e `curl`.
 
-O cadastro retorna `201 Created` com o cabeçalho `Location` apontando para o telefone criado, por exemplo `/telefones/42`. Essa URI pode ser consultada com `GET`; um telefone inexistente retorna `404 Not Found`.
+### Cadastro
 
-Campos do cadastro (`POST`):
-
-| Campo       | Obrigatório | Observação                          |
-| ----------- | ----------- | ----------------------------------- |
-| `clienteId` | Sim         | Identificador do cliente existente. |
-| `ddd`       | Sim         | Exatamente 2 dígitos.               |
-| `numero`    | Sim         | 8 ou 9 dígitos, somente números.    |
+Cadastre o cliente primeiro. Nas requisições seguintes, substitua `1` pelo identificador indicado no `Location` retornado.
 
 ```bash
-curl -X POST http://localhost:8080/telefones \
+curl -i -X POST http://localhost:8080/clientes \
+  -H 'Content-Type: application/json' \
+  -d '{"nome":"Ana Souza","nomeSocial":"Ana","dataNascimento":"1995-04-12"}'
+
+curl -i -X POST http://localhost:8080/clientes/1/endereco \
+  -H 'Content-Type: application/json' \
+  -d '{"estado":"SP","cidade":"São Paulo","bairro":"Centro","rua":"Rua A","numero":"100","codigoPostal":"01000-000"}'
+
+curl -i -X POST http://localhost:8080/telefones \
   -H 'Content-Type: application/json' \
   -d '{"clienteId":1,"ddd":"11","numero":"999991234"}'
-curl http://localhost:8080/clientes/1/telefones
-curl http://localhost:8080/telefones/1
-curl -X PATCH http://localhost:8080/telefones \
+
+curl -i -X POST http://localhost:8080/clientes/1/documentos \
   -H 'Content-Type: application/json' \
-  -d '{"telefoneId":1,"ddd":"11","numero":"988881234"}'
-curl -X DELETE http://localhost:8080/telefones/1
+  -d '{"tipo":"CPF","numero":"12345678900","path":"/docs/cpf.pdf"}'
 ```
 
-No `PATCH`, `ddd` e `numero` são opcionais; só o que for informado é alterado.
+### Consulta, atualização e exclusão
+
+```bash
+curl http://localhost:8080/clientes/1 -H 'Accept: application/json'
+
+curl -i -X PATCH http://localhost:8080/clientes \
+  -H 'Content-Type: application/json' \
+  -d '{"id":1,"nome":"Ana Silva"}'
+
+curl -i -X PATCH http://localhost:8080/clientes/1/endereco \
+  -H 'Content-Type: application/json' \
+  -d '{"numero":"101"}'
+
+curl -i -X PATCH http://localhost:8080/telefones \
+  -H 'Content-Type: application/json' \
+  -d '{"telefoneId":1,"numero":"988881234"}'
+
+curl -i -X PATCH http://localhost:8080/documentos \
+  -H 'Content-Type: application/json' \
+  -d '{"id":1,"path":"/docs/cpf-atualizado.pdf"}'
+
+curl -i -X DELETE http://localhost:8080/telefones/1
+```
+
+Para telefone e documento, utilize os respectivos IDs obtidos nos cadastros, que são independentes do ID do cliente.
+
+## Validações e regras
+
+| Recurso | Regras de cadastro |
+| --- | --- |
+| Cliente | `nome` obrigatório, com até 255 caracteres; `nomeSocial` opcional, com até 255 caracteres; `dataNascimento` opcional e no passado, no formato `YYYY-MM-DD` |
+| Endereço | Cliente existente; `estado`, `cidade`, `bairro`, `rua`, `numero` e `codigoPostal` obrigatórios; os cinco primeiros campos aceitam até 255 caracteres, e o CEP aceita `00000-000` ou `00000000` |
+| Telefone | `clienteId` de cliente existente; `ddd` com dois dígitos e `numero` com oito ou nove dígitos; o cadastro rejeita a repetição do par DDD + número, inclusive entre clientes diferentes |
+| Documento | Cliente existente; `tipo`, `numero` e `path` obrigatórios, com até 255 caracteres; `numero` único entre todos os documentos |
+
+PATCH exige o identificador quando ele faz parte do corpo e altera somente os campos de dados informados. Nos campos opcionais, valores omitidos, nulos ou strings em branco são ignorados; espaços nas extremidades das strings são removidos antes da atualização. O PATCH atual não permite limpar um campo atribuindo `null`.
+
+DDD, telefone, CEP, número de imóvel e número de documento são strings para preservar zeros iniciais. O campo `path` do documento armazena apenas texto; não há operação de upload ou download de arquivos.
+
+## Respostas e erros
+
+| Status HTTP | Situação |
+| --- | --- |
+| `200 OK` | Consulta realizada; listagens JSON retornam arrays, inclusive vazios |
+| `201 Created` | Recurso cadastrado; endereço de consulta informado em `Location` |
+| `204 No Content` | Atualização ou exclusão concluída |
+| `400 Bad Request` | Violação das validações dos campos ou identificador não positivo |
+| `404 Not Found` | Cliente, endereço, telefone ou documento não encontrado |
+| `406 Not Acceptable` | Representação solicitada em `Accept` não suportada pela rota |
+| `409 Conflict` | Telefone já cadastrado ou violação de integridade, como número de documento repetido |
+
+Os erros tratados de negócio e validação usam os campos `titulo` e `mensagem`. Por exemplo, ao cadastrar um cliente sem nome:
+
+```json
+{
+  "titulo": "Dados Inválidos",
+  "mensagem": "nome: o nome é obrigatório"
+}
+```
+
+Um cliente existente sem telefones ou documentos retorna uma coleção vazia. Consultar essas coleções para um cliente inexistente retorna `404`. A consulta direta de um endereço ainda não cadastrado também retorna `404`.
+
+## Testes
+
+```bash
+./mvnw test
+```
+
+Os testes versionados são:
+
+- `AutomanagerApplicationTests`: verifica a inicialização do contexto Spring Boot.
+- `ModularityTests`: verifica as fronteiras entre módulos com `ApplicationModules.verify()`.
+
+O arquivo local `HypermediaIntegrationTests.java`, quando presente, também é executado pelo Maven, mas está ignorado no `.gitignore` e não acompanha um clone do repositório. Os detalhes do contrato de hipermídia e exemplos de navegação estão em [`HATEOAS.md`](HATEOAS.md).

@@ -3,35 +3,31 @@ package com.autobots.automanager.cliente.services;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import com.autobots.automanager.cliente.ClienteDTO;
 import com.autobots.automanager.cliente.ClienteFacade;
 import com.autobots.automanager.cliente.ClienteNaoEncontradoException;
+import com.autobots.automanager.cliente.ClienteExcluido;
 import com.autobots.automanager.cliente.domain.Cliente;
 import com.autobots.automanager.cliente.models.ClienteAtualizador;
 import com.autobots.automanager.cliente.models.ClienteMapper;
-import com.autobots.automanager.cliente.models.MapperToDTO;
-import com.autobots.automanager.cliente.models.Selecionador;
 import com.autobots.automanager.cliente.models.dto.PatchClienteDTO;
 import com.autobots.automanager.cliente.models.dto.response.ClienteResponseDTO;
 import com.autobots.automanager.cliente.repositories.ClienteRepository;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ClienteService implements ClienteFacade {
   private final ClienteRepository clienteRepository;
-  private final Selecionador<Cliente> selecionador;
-  private final MapperToDTO mapper;
+  private final ApplicationEventPublisher events;
 
-  ClienteService(ClienteRepository clienteRepository, Selecionador<Cliente> selecionador,
-      MapperToDTO mapper) {
+  ClienteService(ClienteRepository clienteRepository, ApplicationEventPublisher events) {
     this.clienteRepository = clienteRepository;
-    this.selecionador = selecionador;
-    this.mapper = mapper;
+    this.events = events;
   }
 
   @Override
@@ -39,21 +35,17 @@ public class ClienteService implements ClienteFacade {
     return this.clienteRepository.existsById(id);
   }
 
+  @Transactional(readOnly = true)
   public List<ClienteResponseDTO> obterClientes() {
-    List<Cliente> clientes = this.clienteRepository.findAll();
-
-    List<ClienteResponseDTO> clientesResponseDTO = clientes.stream()
-        .map(c -> mapper.toDTO(c, ClienteResponseDTO.class))
-        .collect(Collectors.toList());
-
-    return clientesResponseDTO;
+    return clienteRepository.findAll().stream().map(ClienteMapper::toResponseDTO).toList();
   }
 
+  @Transactional(readOnly = true)
   public ClienteResponseDTO obterClientePorId(Long id) {
     Cliente cliente = this.clienteRepository.findById(id)
         .orElseThrow(() -> new ClienteNaoEncontradoException(id, "Não foi possível obter o cliente"));
 
-    ClienteResponseDTO clienteDTO = mapper.toDTO(cliente, ClienteResponseDTO.class);
+    ClienteResponseDTO clienteDTO = ClienteMapper.toResponseDTO(cliente);
     return clienteDTO;
   }
 
@@ -85,11 +77,13 @@ public class ClienteService implements ClienteFacade {
     clienteRepository.save(cliente);
   }
 
+  @Transactional
   public void excluirCliente(Long id) {
     Optional<Cliente> clienteOpt = this.clienteRepository.findClienteById(id);
     Cliente cliente = clienteOpt
         .orElseThrow(() -> new ClienteNaoEncontradoException(id, "Não foi possível excluir o cliente"));
 
+    events.publishEvent(new ClienteExcluido(id));
     clienteRepository.delete(cliente);
   }
 }
