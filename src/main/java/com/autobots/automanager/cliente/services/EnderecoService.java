@@ -26,6 +26,9 @@ public class EnderecoService {
   }
 
   public Endereco obterEnderecoPorClienteId(Long id) {
+    if (!clienteRepository.existsById(id)) {
+      throw new ClienteNaoEncontradoException(id, "Não foi possível obter o endereço");
+    }
     Optional<Endereco> enderecoOpt = this.enderecoRepository.findByClienteId(id);
     Endereco endereco = enderecoOpt
         .orElseThrow(() -> new EnderecoNaoEncontradoException("Não foi possível encontrar o endereço"));
@@ -47,15 +50,9 @@ public class EnderecoService {
     endereco.setEstado(enderecoDTO.estado());
     endereco.setCodigoPostal(enderecoDTO.codigoPostal());
     endereco.setCliente(cliente);
+    cliente.setEndereco(endereco);
 
     return enderecoRepository.save(endereco).getId();
-  }
-
-  public void removerEnderecoPorClienteId(Long id) {
-    Optional<Endereco> enderecoOpt = this.enderecoRepository.findByClienteId(id);
-    Endereco endereco = enderecoOpt
-        .orElseThrow(() -> new EnderecoNaoEncontradoException("Não foi possível remover o endereço"));
-    this.enderecoRepository.delete(endereco);
   }
 
   public void atualizarEnderecoPorClienteId(Long clienteId, PatchEnderecoDTO enderecoAtualiza) {
@@ -67,5 +64,14 @@ public class EnderecoService {
     EnderecoAtualizador.atualizar(endereco, enderecoAtualiza);
     this.enderecoRepository.save(endereco);
 
+  }
+
+  @Transactional
+  public void removerEnderecoPorClienteId(Long id) {
+    Optional<Endereco> enderecoOpt = this.enderecoRepository.findByClienteId(id);
+    Endereco endereco = enderecoOpt
+        .orElseThrow(() -> new EnderecoNaoEncontradoException("Não foi possível remover o endereço"));
+    endereco.getCliente().setEndereco(null);
+    this.enderecoRepository.delete(endereco);
   }
 }

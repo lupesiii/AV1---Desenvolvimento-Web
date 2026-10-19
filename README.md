@@ -1,214 +1,72 @@
 # Automanager
 
-Microsserviço Spring Boot para cadastro dos dados do cliente (clientes, documentos, endereços e telefones).
+API Spring Boot para cadastro de clientes, endereços, telefones e documentos. A API oferece hipermídia para o nível 3 do modelo de maturidade de Richardson (RMM): HAL para navegação e HAL-FORMS para descobrir e executar as operações de escrita.
 
-## Evolução para hipermídia
+## Executar e testar
 
-O [contrato de hipermídia baseado em HAL](docs/contrato-hipermidia.md) define o formato proposto das respostas, as relações entre recursos, os exemplos e os critérios de aceitação para implementação. O documento também registra as rotas conferidas nos controllers em 18/10/2026; as tabelas e exemplos de endpoints abaixo ainda precisam ser atualizados nos pontos em que divergem desse inventário. HAL ainda não está implementado na aplicação.
-
-## Requisitos
-
-- Java Development Kit (JDK) 21 ou superior. Confirme com `java -version`;
-- Acesso local pela porta padrão do Spring Boot (`8080`);
-- Utilização do H2 (as informações do banco ficam armazenadas na memória da sessão).
-
-## Como executar
-
-Abra um terminal na raiz do repositório.
-
-No Linux ou macOS, permita a execução do wrapper (se necessário) e inicie a aplicação:
+Requisitos: JDK 21 ou superior. O H2 é criado em memória; os dados são perdidos ao encerrar a aplicação.
 
 ```bash
-chmod +x ./mvnw
 ./mvnw spring-boot:run
+./mvnw test
 ```
 
-No Windows, use o Prompt de Comando ou PowerShell:
+No Windows, use `mvnw.cmd`. A aplicação fica disponível em `http://localhost:8080`.
 
-```bat
-mvnw.cmd spring-boot:run
-```
+## Descobrir a API
 
-Ou, no VSCode, execute a aplicação pela interface gráfica (botão de play).
-
-Espere a mensagem de inicialização do Spring Boot. A API ficará disponível em `http://localhost:8080`.
-
-## Endpoints
-
-Os identificadores nas rotas devem ser números maiores que zero.
-
-### Clientes
-
-| Método e rota                          | Ação                                    |
-| -------------------------------------- | --------------------------------------- |
-| `GET /clientes` / `GET /clientes/{id}` | Lista / consulta                        |
-| `POST /clientes`                       | Cadastra cliente.                       |
-| `PATCH /clientes`                      | Atualiza cliente; informe `id` no JSON. |
-| `DELETE /clientes/{id}`                | Exclui o cliente indicado na rota.      |
-
-Campos do cadastro (`POST`):
-
-| Campo            | Obrigatório | Observação                                                          |
-| ---------------- | ----------- | ------------------------------------------------------------------- |
-| `nome`           | Sim         | Até 255 caracteres.                                                 |
-| `nomeSocial`     | Não         | Até 255 caracteres.                                                 |
-| `dataNascimento` | Não         | Deve estar no passado. A `dataCadastro` é preenchida pelo servidor. |
-
-Documentos, endereço e telefones **não** são enviados no cadastro do cliente; use os endpoints específicos depois de obter o `id` (cabeçalho `Location` da resposta `201`).
-
-Exemplo de cadastro:
+O ponto de entrada é `GET /`. Siga os endereços em `_links`, sem montar URLs a partir dos identificadores.
 
 ```bash
-curl -X POST http://localhost:8080/clientes \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "nome": "Ana Souza",
-    "nomeSocial": "Ana",
-    "dataNascimento": "1995-04-12T00:00:00.000+00:00"
-  }'
+curl http://localhost:8080/ -H 'Accept: application/hal+json'
+curl http://localhost:8080/clientes -H 'Accept: application/prs.hal-forms+json'
 ```
 
-Consultas e exclusão:
+- `application/hal+json`: recursos com `_links` e coleções com `_embedded`.
+- `application/prs.hal-forms+json`: também inclui `_templates`, com método, destino e campos das ações disponíveis.
+- `application/json`, ausência de `Accept` ou `*/*`: mantém JSON nas rotas existentes. Na raiz, ausência de `Accept` ou `*/*` seleciona HAL.
+
+POST e PATCH recebem `Content-Type: application/json`. POST retorna `201 Created` com `Location` consultável; PATCH e DELETE retornam `204 No Content`.
+
+Veja o [contrato implementado e os exemplos de navegação e ações](HATEOAS.md).
+
+## Rotas
+
+Todos os identificadores devem ser positivos. As rotas existentes de escrita foram mantidas.
+
+| Recurso | Consultas | Cadastro | Atualização | Exclusão |
+| --- | --- | --- | --- | --- |
+| Clientes | `GET /clientes`, `GET /clientes/{id}` | `POST /clientes` | `PATCH /clientes` (`id` no corpo) | `DELETE /clientes/{id}` |
+| Endereço | `GET /clientes/{id}/endereco` | `POST /clientes/{id}/endereco` | `PATCH /clientes/{id}/endereco` | `DELETE /clientes/{id}/endereco` |
+| Telefones | `GET /clientes/{clienteId}/telefones`, `GET /telefones/{telefoneId}` | `POST /telefones` (`clienteId` no corpo) | `PATCH /telefones` (`telefoneId` no corpo) | `DELETE /telefones/{telefoneId}` |
+| Documentos | `GET /documentos`, `GET /documentos/{id}`, `GET /clientes/{clienteId}/documentos` | `POST /clientes/{clienteId}/documentos` | `PATCH /documentos` (`id` no corpo) | `DELETE /documentos/{id}` |
+
+## Exemplos de cadastro
+
+Use o identificador do cliente retornado no `Location` no lugar de `1`.
 
 ```bash
-curl http://localhost:8080/clientes
-curl http://localhost:8080/clientes/1
-curl -X DELETE http://localhost:8080/clientes/1
-```
-
-Atualização (`PATCH /clientes`): envie o `id` no corpo. Os demais campos são opcionais; só o que for informado é alterado.
-
-```bash
-curl -X PATCH http://localhost:8080/clientes \
+curl -i -X POST http://localhost:8080/clientes \
   -H 'Content-Type: application/json' \
-  -d '{
-    "id": 1,
-    "nome": "Ana Souza Silva",
-    "nomeSocial": "Ana",
-    "dataNascimento": "1995-04-12T00:00:00.000+00:00"
-  }'
-```
+  -d '{"nome":"Ana Souza","nomeSocial":"Ana","dataNascimento":"1995-04-12"}'
 
-### Documentos
-
-O número do documento é único no banco. Cada documento pertence a um cliente (`clienteId`).
-
-| Método e rota                              | Ação                                       |
-| ------------------------------------------ | ------------------------------------------ |
-| `GET /documentos` / `GET /documentos/{id}` | Lista todos / consulta pelo identificador. |
-| `GET /documentos/cliente/{clienteId}`      | Lista os documentos do cliente.            |
-| `POST /documentos`                         | Cadastra documento.                        |
-| `PATCH /documentos`                        | Atualiza; informe `id` no corpo.           |
-| `DELETE /documentos/{id}`                  | Exclui pelo identificador.                 |
-
-Campos do cadastro (`POST`):
-
-| Campo       | Obrigatório | Observação                          |
-| ----------- | ----------- | ----------------------------------- |
-| `tipo`      | Sim         | Até 255 caracteres.                 |
-| `numero`    | Sim         | Até 255 caracteres; único.          |
-| `path`      | Não         | Até 255 caracteres.                 |
-| `clienteId` | Sim         | Identificador do cliente existente. |
-
-```bash
-curl -X POST http://localhost:8080/documentos \
+curl -i -X POST http://localhost:8080/clientes/1/endereco \
   -H 'Content-Type: application/json' \
-  -d '{"tipo":"CPF","numero":"12345678900","path":"/docs/cpf.pdf","clienteId":1}'
-curl http://localhost:8080/documentos
-curl http://localhost:8080/documentos/1
-curl http://localhost:8080/documentos/cliente/1
-curl -X PATCH http://localhost:8080/documentos \
-  -H 'Content-Type: application/json' \
-  -d '{"id":1,"tipo":"CPF","numero":"12345678900","path":"/docs/cpf.pdf"}'
-curl -X DELETE http://localhost:8080/documentos/1
-```
+  -d '{"estado":"SP","cidade":"São Paulo","bairro":"Centro","rua":"Rua A","numero":"100","codigoPostal":"01000-000"}'
 
-No `PATCH`, `tipo`, `numero` e `path` são opcionais; só o que for informado é alterado.
-
-### Endereços
-
-Cada cliente possui no máximo um endereço.
-
-| Método e rota                    | Ação                                                          |
-| -------------------------------- | ------------------------------------------------------------- |
-| `GET /enderecos/cliente/{id}`    | Consulta o endereço do cliente.                               |
-| `POST /enderecos`                | Cadastra endereço para o cliente informado no JSON.           |
-| `PATCH /enderecos`               | Atualiza o endereço do cliente; informe `clienteId` no corpo. |
-| `DELETE /enderecos/cliente/{id}` | Remove o endereço do cliente.                                 |
-
-Campos do cadastro (`POST`):
-
-| Campo          | Obrigatório | Observação                          |
-| -------------- | ----------- | ----------------------------------- |
-| `clienteId`    | Sim         | Identificador do cliente existente. |
-| `cidade`       | Sim         | Até 255 caracteres.                 |
-| `rua`          | Sim         | Até 255 caracteres.                 |
-| `numero`       | Sim         | Número do imóvel (texto, até 255).  |
-| `estado`       | Não         | Até 255 caracteres.                 |
-| `bairro`       | Não         | Até 255 caracteres.                 |
-| `codigoPostal` | Não         | Formato `00000-000` ou `00000000`.  |
-
-```bash
-curl -X POST http://localhost:8080/enderecos \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "clienteId": 1,
-    "estado": "SP",
-    "cidade": "São Paulo",
-    "bairro": "Centro",
-    "rua": "Rua A",
-    "numero": "100",
-    "codigoPostal": "01000-000"
-  }'
-curl http://localhost:8080/enderecos/cliente/1
-curl -X PATCH http://localhost:8080/enderecos \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "clienteId": 1,
-    "estado": "SP",
-    "cidade": "São Paulo",
-    "bairro": "Centro",
-    "rua": "Rua B",
-    "numero": "200",
-    "codigoPostal": "01000-000"
-  }'
-curl -X DELETE http://localhost:8080/enderecos/cliente/1
-```
-
-No `PATCH`, além de `clienteId`, os demais campos são opcionais; só o que for informado é alterado.
-
-### Telefones
-
-Não é permitido cadastrar o mesmo par DDD + número mais de uma vez.
-
-| Método e rota                        | Ação                                                |
-| ------------------------------------ | --------------------------------------------------- |
-| `GET /clientes/{clienteId}/telefones` | Lista os telefones do cliente.                      |
-| `GET /telefones/{telefoneId}`        | Consulta um telefone pelo identificador.            |
-| `POST /telefones`                    | Cadastra telefone para o cliente informado no JSON. |
-| `PATCH /telefones`                   | Atualiza o telefone; informe `telefoneId` no corpo. |
-| `DELETE /telefones/{telefoneId}`     | Exclui pelo identificador do telefone.              |
-
-O cadastro retorna `201 Created` com o cabeçalho `Location` apontando para o telefone criado, por exemplo `/telefones/42`. Essa URI pode ser consultada com `GET`; um telefone inexistente retorna `404 Not Found`.
-
-Campos do cadastro (`POST`):
-
-| Campo       | Obrigatório | Observação                          |
-| ----------- | ----------- | ----------------------------------- |
-| `clienteId` | Sim         | Identificador do cliente existente. |
-| `ddd`       | Sim         | Exatamente 2 dígitos.               |
-| `numero`    | Sim         | 8 ou 9 dígitos, somente números.    |
-
-```bash
-curl -X POST http://localhost:8080/telefones \
+curl -i -X POST http://localhost:8080/telefones \
   -H 'Content-Type: application/json' \
   -d '{"clienteId":1,"ddd":"11","numero":"999991234"}'
-curl http://localhost:8080/clientes/1/telefones
-curl http://localhost:8080/telefones/1
-curl -X PATCH http://localhost:8080/telefones \
+
+curl -i -X POST http://localhost:8080/clientes/1/documentos \
   -H 'Content-Type: application/json' \
-  -d '{"telefoneId":1,"ddd":"11","numero":"988881234"}'
-curl -X DELETE http://localhost:8080/telefones/1
+  -d '{"tipo":"CPF","numero":"12345678900","path":"/docs/cpf.pdf"}'
 ```
 
-No `PATCH`, `ddd` e `numero` são opcionais; só o que for informado é alterado.
+No cadastro de cliente, somente `nome` é obrigatório. A data de nascimento é opcional e deve estar no passado, no formato `YYYY-MM-DD`. Os campos de endereço do exemplo são obrigatórios. DDD tem dois dígitos e telefone tem oito ou nove; o par DDD + número é único. Documentos exigem `tipo`, `numero` único e `path` (texto, sem endpoint de download).
+
+PATCH altera somente os campos informados, além do identificador obrigatório quando ele faz parte do corpo. Telefones, CEP, número de imóvel e número de documento são strings para preservar zeros iniciais.
+
+## Verificação
+
+A suíte cobre inicialização, fronteiras entre módulos e testes HTTP com banco H2 real: navegação por links, coleções vazias, ações de cadastro/edição/exclusão, ações condicionais de endereço, erros, compatibilidade JSON e prefixos de implantação. A exclusão do cliente também remove seus documentos na mesma transação, evitando links para proprietários inexistentes.
